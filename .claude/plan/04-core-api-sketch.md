@@ -204,19 +204,25 @@ One report, three sources of entries (schema / types / `ObjectValidator`s), one 
 
 As designed in [03-custom-validation-design.md](03-custom-validation-design.md): `ObjectValidator` interface, registered per target class on the builder, invoked post-order on successfully hydrated nodes; root validators see the whole document via `$context->root()`.
 
-## Stage 2 previews (signatures only, to validate the design composes)
+## Stage 2 — implemented (2026-08-08); final shapes
 
 ```php
-// SchemaGen — classes → JSON Schema (reads the same attributes as the Mapper: zero drift)
-$schema = SchemaGenerator::for(FormDefinition::class)->toJsonSchema(); // draft 2020-12, array|json
+// Normalizer — objects → JSON, on TreeMapper (same metadata as hydration).
+// Omits values hydration would restore anyway (defaults, missing nullables);
+// #[Extras] merges back flat; union variants re-emit their discriminator.
+$data = $mapper->normalize($workflow); // json_encode-ready
 
-// Tree — typed access without classes, driven by a schema (configurator-built forms, node `parameters`)
-$tree = TypedTree::of(Source::json($dataJson), $derivedSchema);
-$tree->get('/customer/birthDate');   // DateTimeImmutable (schema format: date)
-$tree->customer->birthDate;          // same, property-style (PHP 8.4 property hooks)
+// SchemaGen — classes/type strings → JSON Schema draft 2020-12.
+// required/additionalProperties mirror hydration semantics; unions → anyOf with
+// const discriminators; classes → $defs/$ref (recursion-safe).
+$schema = new SchemaGenerator()->generate(FormDefinition::class); // returns Schema
 
-// Normalizer — objects → JSON, extras preserved (round-trip)
-$json = $mapper->normalize($workflow); // array; json_encode-ready
+// Tree — typed access without classes (JsonNode, explicit API — no magic __get).
+// Errors are MappingFailed with absolute JSON Pointers, like everywhere else.
+$node = JsonNode::of(Source::json($dataJson));
+$node->get('/customer/birthDate')->dateTime();
+$node->get('/fields')->list();
+// (schema-driven auto-conversion per `format` remains future scope)
 ```
 
 ## Test example living in the repo (not a package)

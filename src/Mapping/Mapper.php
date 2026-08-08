@@ -29,6 +29,8 @@ use JsonMine\Validation\ValidationContext;
  */
 final readonly class Mapper implements TreeMapper
 {
+    private Normalizer $normalizer;
+
     public function __construct(
         private TypeParser $parser,
         private MetadataFactory $metadata,
@@ -37,7 +39,9 @@ final readonly class Mapper implements TreeMapper
         private SchemaValidator $schemaValidator,
         private SchemaVault $vault,
         private Coercion $coercion,
-    ) {}
+    ) {
+        $this->normalizer = new Normalizer($metadata, $variants);
+    }
 
     public function map(string $target, Source $source): mixed
     {
@@ -79,6 +83,11 @@ final readonly class Mapper implements TreeMapper
         // provable to the type system.
         // @phpstan-ignore return.type
         return new MappingSuccess($value);
+    }
+
+    public function normalize(mixed $value): mixed
+    {
+        return $this->normalizer->normalize($value);
     }
 
     private function schemaCheck(string $target, Source $source, mixed $data): ErrorReport

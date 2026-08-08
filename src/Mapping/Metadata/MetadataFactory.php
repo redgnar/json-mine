@@ -180,6 +180,7 @@ final class MetadataFactory
             $jsonKey,
             $type,
             $property->hasDefaultValue(),
+            $property->hasDefaultValue() ? $property->getDefaultValue() : null,
             $isExtras,
         );
     }

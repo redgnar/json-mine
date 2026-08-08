@@ -21,11 +21,13 @@ final readonly class PropertyMetadata
         public string $jsonKey,
         public TypeNode $type,
         /**
-         * Whether the declaration carries a default value. Unlike constructor
-         * parameters, the value itself is not needed: a missing key simply
-         * leaves the declared default in place.
+         * Whether the declaration carries a default value. Hydration only
+         * needs the flag (a missing key leaves the declared default in
+         * place); normalization compares against $default to omit values
+         * that hydration would restore anyway.
          */
         public bool $hasDefault,
+        public mixed $default,
         /** Marks the bag collecting JSON keys not mapped to any member. */
         public bool $isExtras,
     ) {}

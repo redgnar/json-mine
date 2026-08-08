@@ -37,4 +37,14 @@ interface TreeMapper
      * @return ($target is class-string<T> ? MappingResult<T> : MappingResult<mixed>)
      */
     public function tryMap(string $target, Source $source): MappingResult;
+
+    /**
+     * The reverse direction: mapped values → json_encode-ready data. Reads the
+     * same metadata as hydration; #[Extras] merges back flat and discriminated
+     * union variants re-emit their discriminator, so load → edit → save
+     * round-trips losslessly.
+     *
+     * @throws \LogicException when the value is not normalizable (resources, object cycles)
+     */
+    public function normalize(mixed $value): mixed;
 }
