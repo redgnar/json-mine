@@ -1,5 +1,11 @@
 # json-mine
 
+[![CI](https://github.com/redgnar/json-mine/actions/workflows/ci.yml/badge.svg)](https://github.com/redgnar/json-mine/actions/workflows/ci.yml)
+[![PHP](https://img.shields.io/badge/php-%E2%89%A5%208.4-777BB4?logo=php&logoColor=white)](composer.json)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%20max%20%2B%20strict-brightgreen)](phpstan.neon.dist)
+[![Mutation testing](https://img.shields.io/badge/Infection-covered%20MSI%20100%25-blue)](infection.json5)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey)](composer.json)
+
 Typed handling of JSON definitions for PHP 8.4+: read a JSON document, optionally
 validate it against a JSON Schema, and work with a fully typed PHP object tree —
 no manual casting, no hand-written mapping code.
