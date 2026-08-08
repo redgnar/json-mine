@@ -23,6 +23,14 @@ final readonly class JsonPointer implements \Stringable
     }
 
     /**
+     * @param list<string|int> $segments Decoded (unescaped) segments.
+     */
+    public static function fromSegments(array $segments): self
+    {
+        return new self(array_map(static fn(string|int $segment): string => (string) $segment, $segments));
+    }
+
+    /**
      * @throws \InvalidArgumentException when the pointer is non-empty and does not start with '/'
      */
     public static function fromString(string $pointer): self

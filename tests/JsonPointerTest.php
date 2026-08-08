@@ -86,6 +86,19 @@ final class JsonPointerTest extends TestCase
         self::assertSame(['3'], $extended->segments);
     }
 
+    public function testBuildsPointerFromMixedSegments(): void
+    {
+        // GIVEN segments as produced by validators (ints for array indexes)
+        $segments = ['fields', 1, 'name'];
+
+        // WHEN
+        $pointer = JsonPointer::fromSegments($segments);
+
+        // THEN
+        self::assertSame(['fields', '1', 'name'], $pointer->segments);
+        self::assertSame('/fields/1/name', $pointer->toString());
+    }
+
     public function testJoinResolvesOtherPointerAgainstBase(): void
     {
         // GIVEN
