@@ -51,6 +51,14 @@ final readonly class JsonPointer implements \Stringable
         return new self([...$this->segments, (string) $segment]);
     }
 
+    /**
+     * Resolves $other against this pointer (this acts as the base path).
+     */
+    public function join(self $other): self
+    {
+        return new self([...$this->segments, ...$other->segments]);
+    }
+
     public function isRoot(): bool
     {
         return $this->segments === [];

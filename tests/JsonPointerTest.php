@@ -86,6 +86,32 @@ final class JsonPointerTest extends TestCase
         self::assertSame(['3'], $extended->segments);
     }
 
+    public function testJoinResolvesOtherPointerAgainstBase(): void
+    {
+        // GIVEN
+        $base = JsonPointer::fromString('/nodes/3');
+        $relative = JsonPointer::fromString('/connections/0');
+
+        // WHEN
+        $joined = $base->join($relative);
+
+        // THEN
+        self::assertSame('/nodes/3/connections/0', $joined->toString());
+        self::assertSame('/nodes/3', $base->toString());
+    }
+
+    public function testJoinWithRootPointerIsIdentity(): void
+    {
+        // GIVEN
+        $base = JsonPointer::fromString('/fields/1');
+
+        // WHEN
+        $joined = $base->join(JsonPointer::root());
+
+        // THEN
+        self::assertSame(['fields', '1'], $joined->segments);
+    }
+
     public function testRoundTripsThroughStringRepresentation(): void
     {
         // GIVEN
