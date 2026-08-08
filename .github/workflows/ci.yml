@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: pcov
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Coding standard (php-cs-fixer)
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+        env:
+          PHP_CS_FIXER_IGNORE_ENV: '1'
+
+      - name: Static analysis (PHPStan)
+        run: vendor/bin/phpstan analyse --no-progress
+
+      - name: Tests (PHPUnit)
+        run: vendor/bin/phpunit
+
+      - name: Security audit
+        run: composer audit
+
+      - name: Dependency hygiene
+        run: |
+          vendor/bin/composer-require-checker check
+          vendor/bin/composer-unused
+
+      - name: Mutation testing (Infection)
+        if: matrix.php == '8.4'
+        run: vendor/bin/infection --threads=max --no-progress

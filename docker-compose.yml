@@ -1,0 +1,9 @@
+# Dev environment. PhpStorm: Settings → PHP → CLI Interpreter → From Docker Compose → service "php",
+# then PHP → Test Frameworks → PHPUnit by Remote Interpreter (composer autoloader: /app/vendor/autoload.php).
+services:
+  php:
+    build: docker
+    image: json-mine-dev
+    working_dir: /app
+    volumes:
+      - .:/app

@@ -1,0 +1,47 @@
+# All tools run inside the pinned Docker image (docker/Dockerfile, service "php" in docker-compose.yml).
+# Local PHP is never used. Docker runs with userns remapping (rootless): container root == host user.
+RUN := docker compose run --rm --no-deps php
+
+.PHONY: image install update test coverage stan cs cs-fix validate audit deps mutation ci shell
+
+image: ## Build the dev/test image
+	docker compose build
+
+install: image
+	$(RUN) composer install
+
+update: image
+	$(RUN) composer update
+
+test:
+	$(RUN) vendor/bin/phpunit
+
+coverage:
+	$(RUN) vendor/bin/phpunit --coverage-text
+
+stan:
+	$(RUN) vendor/bin/phpstan analyse --no-progress
+
+cs:
+	$(RUN) vendor/bin/php-cs-fixer fix --dry-run --diff
+
+cs-fix:
+	$(RUN) vendor/bin/php-cs-fixer fix
+
+validate:
+	$(RUN) composer validate --strict
+
+audit: ## Known security vulnerabilities in dependencies
+	$(RUN) composer audit
+
+deps: ## Dependency hygiene: no transitive-only usage, no unused requires
+	$(RUN) vendor/bin/composer-require-checker check
+	$(RUN) vendor/bin/composer-unused
+
+mutation: ## Mutation testing (Infection) — verifies test quality
+	$(RUN) vendor/bin/infection --threads=max --no-progress
+
+ci: validate cs stan test audit deps mutation ## Everything the git pipeline checks
+
+shell: ## Interactive shell inside the dev image
+	docker compose run --rm --no-deps -it php sh
