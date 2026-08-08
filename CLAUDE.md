@@ -70,6 +70,8 @@ Rules:
 
 ## Repo conventions
 
+- **Never commit or push on your own initiative** — finish with a green `make ci`, report the changes, and leave git operations to the user unless they explicitly ask in the current conversation.
+- **Never add `Co-Authored-By` (or similar) trailers** to commit messages.
 - The remote is GitHub (`gh` CLI is fine for this repo).
 - Do not commit `vendor/`, `composer.lock`, caches (see `.gitignore`).
 - Performance matters: hot-path changes (hydration loop, schema pre-check) should come with a phpbench comparison once benchmarks exist.
