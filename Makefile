@@ -2,7 +2,7 @@
 # Local PHP is never used. Docker runs with userns remapping (rootless): container root == host user.
 RUN := docker compose run --rm --no-deps php
 
-.PHONY: image install update test coverage stan cs cs-fix validate audit deps mutation ci shell
+.PHONY: image install update test coverage stan cs cs-fix validate audit deps mutation bench ci shell
 
 image: ## Build the dev/test image
 	docker compose build
@@ -40,6 +40,9 @@ deps: ## Dependency hygiene: no transitive-only usage, no unused requires
 
 mutation: ## Mutation testing (Infection) — verifies test quality
 	$(RUN) vendor/bin/infection --threads=max --no-progress
+
+bench: ## Performance benchmarks (informational, not a CI gate)
+	$(RUN) vendor/bin/phpbench run --report=aggregate
 
 ci: validate cs stan test audit deps mutation ## Everything the git pipeline checks
 

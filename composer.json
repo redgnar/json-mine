@@ -13,6 +13,7 @@
         "icanhazstring/composer-unused": "^0.9.6",
         "infection/infection": "^0.34.2",
         "maglnet/composer-require-checker": "^4.17",
+        "phpbench/phpbench": "^1.7",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
@@ -25,6 +26,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "JsonMine\\Benchmarks\\": "benchmarks/",
             "JsonMine\\Tests\\": "tests/"
         }
     },
