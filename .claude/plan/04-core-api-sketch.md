@@ -156,22 +156,21 @@ Attribute set for the MVP (small on purpose):
 
 | Attribute | Where | Meaning |
 |---|---|---|
-| `#[Discriminator('type')]` | union root (abstract class/interface) | which JSON field selects the variant |
-| `#[Variant('text')]` | concrete subclass | closed-union registration (open unions use the builder/registry) |
+| `#[Discriminator('type', map: [...])]` | union root (abstract class/interface) | which JSON field selects the variant + the closed-union value→class map (declared on the root because PHP cannot enumerate subclasses; open unions use the builder registry, which merges with and wins over the map) |
 | `#[Name('json_key')]` | promoted parameter | JSON key ≠ property name |
-| `#[Format('date-time')]` | parameter | disambiguates string conversions (dates, uuid, …) |
+| `#[Format('date-time')]` | parameter | disambiguates string conversions (dates, uuid, …) — reserved; the engine does not read it yet |
 | `#[Extras]` | one array parameter | bag for unknown keys (round-trip) |
+
+*(An earlier draft had `#[Variant('text')]` on subclasses — dropped as unimplementable: the mapper resolves the union root first and PHP cannot discover subclasses, so a subclass-side attribute would never be read.)*
 
 Backed enums map automatically (value → case; error lists allowed values). `DateTimeImmutable` maps from ISO-8601 in Lax mode or with `#[Format]`.
 
 ## Discriminated unions: closed and open
 
 ```php
-// Closed (compile-time known set): attributes are enough
-#[Discriminator('type')]
+// Closed (compile-time known set): the root declares the map
+#[Discriminator('type', map: ['text' => TextField::class, 'select' => SelectField::class])]
 abstract readonly class Field {}
-#[Variant('text')]   final readonly class TextField extends Field {}
-#[Variant('select')] final readonly class SelectField extends Field {}
 
 // Open (plugin territory — workflow nodes): runtime registry + fallback
 $builder
