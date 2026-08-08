@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace JsonMine\Attribute;
 
 /**
- * Maps a constructor parameter to a JSON key with a different name.
+ * Maps a constructor parameter or a property to a JSON key with a different name.
  */
-#[\Attribute(\Attribute::TARGET_PARAMETER)]
+#[\Attribute(\Attribute::TARGET_PARAMETER | \Attribute::TARGET_PROPERTY)]
 final readonly class Name
 {
     public function __construct(

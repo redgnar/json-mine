@@ -10,3 +10,13 @@ parameters:
         - src
         - tests
     tmpDir: .cache/phpstan
+    ignoreErrors:
+        # Fixtures model user classes hydrated via reflection (property phase of
+        # the hybrid hydrator): readonly/private members are written by the
+        # mapper, not by code PHPStan can see. Scoped to fixtures only.
+        -
+            identifier: property.uninitializedReadonly
+            path: tests/Fixture/*
+        -
+            identifier: property.onlyRead
+            path: tests/Fixture/*

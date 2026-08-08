@@ -301,6 +301,7 @@ final class Hydrator
 
         $remaining = get_object_vars($value);
         $arguments = [];
+        $propertyValues = [];
         $failed = false;
 
         foreach ($metadata->parameters as $parameter) {
@@ -335,14 +336,52 @@ final class Hydrator
             $arguments[$parameter->name] = $hydrated;
         }
 
+        // Members the constructor does not cover are set after construction.
+        foreach ($metadata->properties as $property) {
+            if ($property->isExtras) {
+                continue; // receives whatever is left in $remaining, below
+            }
+
+            if (!\array_key_exists($property->jsonKey, $remaining)) {
+                if ($property->hasDefault) {
+                    continue; // the declared default stays in place
+                }
+
+                if ($property->type instanceof NullableType) {
+                    $propertyValues[$property->name] = null;
+                } else {
+                    $this->fail($path, 'mapping.missing_key', \sprintf('Missing key "%s".', $property->jsonKey), null);
+                    $failed = true;
+                }
+
+                continue;
+            }
+
+            $raw = $remaining[$property->jsonKey];
+            unset($remaining[$property->jsonKey]);
+
+            $hydrated = $this->value($property->type, $raw, $path->append($property->jsonKey));
+
+            if ($hydrated === Failed::Value) {
+                $failed = true;
+
+                continue;
+            }
+
+            $propertyValues[$property->name] = $hydrated;
+        }
+
         if ($consumedField !== null) {
             unset($remaining[$consumedField]); // consumed upstream when selecting the variant
         }
 
-        $extras = $metadata->extrasParameter();
+        $extrasParameter = $metadata->extrasParameter();
+        $extrasProperty = $metadata->extrasProperty();
 
-        if ($extras !== null) {
-            $arguments[$extras->name] = $remaining;
+        if ($extrasParameter !== null) {
+            $arguments[$extrasParameter->name] = $remaining;
+        } elseif ($extrasProperty !== null) {
+            $propertyValues[$extrasProperty->name] = $remaining;
         } elseif ($remaining !== [] && $this->coercion === Coercion::Strict) {
             foreach ($remaining as $key => $unexpected) {
                 $this->fail($path->append($key), 'mapping.unexpected_key', \sprintf('Unexpected key "%s".', $key), $unexpected);
@@ -355,13 +394,14 @@ final class Hydrator
             return Failed::Value;
         }
 
-        return $this->construct($metadata, $arguments, $path);
+        return $this->construct($metadata, $arguments, $propertyValues, $path);
     }
 
     /**
      * @param array<string, mixed> $arguments keyed by parameter name
+     * @param array<string, mixed> $propertyValues keyed by property name, set after construction
      */
-    private function construct(ClassMetadata $metadata, array $arguments, JsonPointer $path): mixed
+    private function construct(ClassMetadata $metadata, array $arguments, array $propertyValues, JsonPointer $path): mixed
     {
         $ordered = [];
 
@@ -373,6 +413,19 @@ final class Hydrator
             $object = new ($metadata->class)(...$ordered);
         } catch (\Exception $exception) {
             return $this->fail($path, 'mapping.constructor', $exception->getMessage(), null);
+        }
+
+        if ($propertyValues !== []) {
+            $reflection = new \ReflectionClass($metadata->class);
+
+            foreach ($propertyValues as $name => $propertyValue) {
+                try {
+                    $reflection->getProperty($name)->setValue($object, $propertyValue);
+                } catch (\Error $error) {
+                    // e.g. a readonly property the constructor already initialized
+                    return $this->fail($path, 'mapping.property', \sprintf('Cannot set property "%s": %s', $name, $error->getMessage()), $propertyValue);
+                }
+            }
         }
 
         if ($this->trackObjects) {

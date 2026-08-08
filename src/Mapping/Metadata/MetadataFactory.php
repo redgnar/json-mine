@@ -90,23 +90,136 @@ final class MetadataFactory
 
         $constructor = $reflection->getConstructor();
         $parameters = [];
+        $properties = [];
 
-        if ($reflection->isInstantiable() && $constructor !== null) {
-            $docblockTypes = $this->docblockParameterTypes($constructor);
+        if ($reflection->isInstantiable()) {
             $namespace = $reflection->getNamespaceName();
 
-            foreach ($constructor->getParameters() as $parameter) {
-                $parameters[] = $this->parameterMetadata($parameter, $docblockTypes, $namespace, $class);
+            if ($constructor !== null) {
+                $docblockTypes = $this->docblockParameterTypes($constructor);
+
+                foreach ($constructor->getParameters() as $parameter) {
+                    $parameters[] = $this->parameterMetadata($parameter, $docblockTypes, $namespace, $class);
+                }
             }
+
+            $properties = $this->properties($reflection, $parameters, $namespace, $class);
         }
 
         return new ClassMetadata(
             $class,
             $parameters,
+            $properties,
             $reflection->isInstantiable(),
             $discriminatorField,
             $discriminatorMap,
         );
+    }
+
+    /**
+     * Collects members not covered by the constructor: non-static,
+     * non-promoted properties whose names match no constructor parameter.
+     *
+     * @param \ReflectionClass<object> $reflection
+     * @param list<ParameterMetadata> $parameters
+     * @param class-string $class
+     *
+     * @return list<PropertyMetadata>
+     */
+    private function properties(\ReflectionClass $reflection, array $parameters, string $namespace, string $class): array
+    {
+        $parameterNames = array_map(static fn(ParameterMetadata $parameter): string => $parameter->name, $parameters);
+        $properties = [];
+
+        foreach ($reflection->getProperties() as $property) {
+            // Promoted properties are covered by the parameter-name check —
+            // a promoted property always shares its constructor parameter's name.
+            if ($property->isStatic() || \in_array($property->getName(), $parameterNames, true)) {
+                continue;
+            }
+
+            $properties[] = $this->propertyMetadata($property, $namespace, $class);
+        }
+
+        return $properties;
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function propertyMetadata(\ReflectionProperty $property, string $namespace, string $class): PropertyMetadata
+    {
+        $jsonKey = $property->getName();
+        $isExtras = false;
+
+        foreach ($property->getAttributes(Name::class) as $attribute) {
+            $jsonKey = $attribute->newInstance()->key;
+        }
+
+        if ($property->getAttributes(Extras::class) !== []) {
+            $isExtras = true;
+        }
+
+        $type = $this->typeOf(
+            $property->getType(),
+            $this->varType($property),
+            $namespace,
+            \sprintf('property "%s" of %s', $property->getName(), $class),
+        );
+
+        if ($isExtras && !($type instanceof MapType || $type instanceof MixedType)) {
+            throw new \LogicException(\sprintf(
+                'The #[Extras] property "%s" of %s must be an array.',
+                $property->getName(),
+                $class,
+            ));
+        }
+
+        return new PropertyMetadata(
+            $property->getName(),
+            $jsonKey,
+            $type,
+            $property->hasDefaultValue(),
+            $isExtras,
+        );
+    }
+
+    /**
+     * Extracts the type string of a `@var` declaration from the property docblock.
+     */
+    private function varType(\ReflectionProperty $property): ?string
+    {
+        $docblock = $property->getDocComment();
+
+        if ($docblock === false || preg_match('/@var\s+(.+)/', $docblock, $matches) !== 1) {
+            return null;
+        }
+
+        return $this->firstTypeToken($matches[1]);
+    }
+
+    /**
+     * Cuts a type expression at the first top-level whitespace, so trailing
+     * docblock text (asterisks, descriptions) is not treated as part of the type.
+     */
+    private function firstTypeToken(string $expression): string
+    {
+        $depth = 0;
+        $token = '';
+
+        foreach (str_split($expression) as $char) {
+            if ($char === '<') {
+                ++$depth;
+            } elseif ($char === '>') {
+                --$depth;
+            } elseif ($depth === 0 && \in_array($char, [' ', "\t", "\r", "\n", '*'], true)) {
+                break;
+            }
+
+            $token .= $char;
+        }
+
+        return $token;
     }
 
     /**
@@ -152,7 +265,12 @@ final class MetadataFactory
             $isExtras = true;
         }
 
-        $type = $this->resolveType($parameter, $docblockTypes[$parameter->getName()] ?? null, $namespace, $class);
+        $type = $this->typeOf(
+            $parameter->getType(),
+            $docblockTypes[$parameter->getName()] ?? null,
+            $namespace,
+            \sprintf('parameter "%s" of %s', $parameter->getName(), $class),
+        );
 
         if ($isExtras && !($type instanceof MapType || $type instanceof MixedType)) {
             throw new \LogicException(\sprintf(
@@ -173,12 +291,12 @@ final class MetadataFactory
     }
 
     /**
-     * @param class-string $class
+     * Combines a native reflection type with an optional docblock refinement.
+     *
+     * @param string $owner member description used in configuration-error messages
      */
-    private function resolveType(\ReflectionParameter $parameter, ?string $docblockType, string $namespace, string $class): TypeNode
+    private function typeOf(?\ReflectionType $native, ?string $docblockType, string $namespace, string $owner): TypeNode
     {
-        $native = $parameter->getType();
-
         if ($docblockType !== null) {
             $parsed = $this->parser->parse($docblockType, $namespace);
 
@@ -193,9 +311,8 @@ final class MetadataFactory
 
         if (!$native instanceof \ReflectionNamedType) {
             throw new \LogicException(\sprintf(
-                'Cannot map parameter "%s" of %s — union/intersection native types are not supported (use ?T for nullable, class hierarchies for discriminated unions).',
-                $parameter->getName(),
-                $class,
+                'Cannot map %s — union/intersection native types are not supported (use ?T for nullable, class hierarchies for discriminated unions).',
+                $owner,
             ));
         }
 

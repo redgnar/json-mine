@@ -14,6 +14,8 @@ final readonly class ClassMetadata
         public string $class,
         /** @var list<ParameterMetadata> */
         public array $parameters,
+        /** @var list<PropertyMetadata> members not covered by the constructor, set after construction */
+        public array $properties,
         public bool $isInstantiable,
         /** Set when this class is a discriminated-union root (#[Discriminator]). */
         public ?string $discriminatorField,
@@ -26,6 +28,17 @@ final readonly class ClassMetadata
         foreach ($this->parameters as $parameter) {
             if ($parameter->isExtras) {
                 return $parameter;
+            }
+        }
+
+        return null;
+    }
+
+    public function extrasProperty(): ?PropertyMetadata
+    {
+        foreach ($this->properties as $property) {
+            if ($property->isExtras) {
+                return $property;
             }
         }
 

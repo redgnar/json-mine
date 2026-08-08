@@ -13,7 +13,7 @@ All code, comments, documentation, commit messages: **English**. Conversation wi
 - **Core stays generic**: nothing form-, workflow-, or domain-specific in `src/`. Conditional/business rules belong to consumer plugins via the `ObjectValidator` extension point (`.claude/plan/03-custom-validation-design.md`).
 - **Strict by default**: `Coercion::Strict` is the default mode; `map()`/`tryMap()` accept `Source` only (no `string|array` unions in public entry points).
 - **One error report**: schema, type-mapping, and semantic errors share one format — absolute JSON Pointer + machine-readable code + input value.
-- Target classes are plain `readonly` DTOs with constructor promotion; optional (default value) ≠ nullable (`?Type`) — honor both semantics.
+- Target classes are plain DTOs. Hydration is hybrid: constructor parameters first (invariants always run), then members the constructor does not cover are set via reflection (public/private/uninitialized-readonly properties); a property whose name matches a constructor parameter is constructor-owned. Optional (default value) ≠ nullable (`?Type`) — honor both semantics.
 - PHP >= 8.4; PSR-6 for caching (consume `CacheItemPoolInterface`, never implement a real cache here).
 
 ## Testing (PHPUnit)
