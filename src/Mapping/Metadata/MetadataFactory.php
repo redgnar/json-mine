@@ -12,11 +12,17 @@ use JsonMine\Mapping\Type\MixedType;
 use JsonMine\Mapping\Type\NullableType;
 use JsonMine\Mapping\Type\TypeNode;
 use JsonMine\Mapping\Type\TypeParser;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Builds (and caches in memory) hydration metadata from reflection:
- * constructor parameters, native types refined by docblock `@param` types,
- * and the mapping attributes.
+ * Builds (and caches) hydration metadata from reflection: constructor
+ * parameters, native types refined by docblock `@param` types, and the
+ * mapping attributes.
+ *
+ * Caching is two-level: an in-memory map always, plus an optional PSR-6 pool
+ * for cross-request reuse. Pool keys derive from the class name only —
+ * deployments changing class definitions must clear the pool (use an
+ * in-memory pool during development).
  *
  * Configuration problems (unsupported types, misplaced attributes) throw
  * \LogicException — they are programmer errors, not data errors.
@@ -28,6 +34,7 @@ final class MetadataFactory
 
     public function __construct(
         private readonly TypeParser $parser = new TypeParser(),
+        private readonly ?CacheItemPoolInterface $pool = null,
     ) {}
 
     /**
@@ -35,7 +42,41 @@ final class MetadataFactory
      */
     public function for(string $class): ClassMetadata
     {
-        return $this->cache[$class] ??= $this->build($class);
+        return $this->cache[$class] ??= $this->load($class);
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function load(string $class): ClassMetadata
+    {
+        if ($this->pool === null) {
+            return $this->build($class);
+        }
+
+        $item = $this->pool->getItem($this->cacheKey($class));
+
+        if ($item->isHit()) {
+            $cached = $item->get();
+
+            if ($cached instanceof ClassMetadata) {
+                return $cached;
+            }
+        }
+
+        $metadata = $this->build($class);
+        $this->pool->save($item->set($metadata));
+
+        return $metadata;
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function cacheKey(string $class): string
+    {
+        // Class names contain backslashes (reserved in PSR-6 keys) — hash them.
+        return \sprintf('jsonmine.metadata.%s', hash('xxh128', $class));
     }
 
     /**

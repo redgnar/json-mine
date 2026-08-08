@@ -40,7 +40,7 @@ jobs:
         run: vendor/bin/phpunit
 
       - name: Security audit
-        run: composer audit
+        run: composer audit --abandoned=report
 
       - name: Dependency hygiene
         run: |

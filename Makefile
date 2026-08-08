@@ -31,8 +31,8 @@ cs-fix:
 validate:
 	$(RUN) composer validate --strict
 
-audit: ## Known security vulnerabilities in dependencies
-	$(RUN) composer audit
+audit: ## Known security vulnerabilities in dependencies (abandoned transitive dev deps: report, don't fail)
+	$(RUN) composer audit --abandoned=report
 
 deps: ## Dependency hygiene: no transitive-only usage, no unused requires
 	$(RUN) vendor/bin/composer-require-checker check

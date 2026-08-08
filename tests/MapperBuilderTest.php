@@ -27,6 +27,7 @@ final class MapperBuilderTest extends TestCase
         $base = MapperBuilder::create();
 
         // WHEN / THEN — the builder is immutable
+        self::assertNotSame($base, $base->withCache(new \JsonMine\Tests\Fixture\ArrayCachePool()));
         self::assertNotSame($base, $base->withSchemaValidator(new RejectingSchemaValidator()));
         self::assertNotSame($base, $base->withSchema(Address::class, Schema::fromDocument(true)));
         self::assertNotSame($base, $base->withSchemaResolver(static fn(string $class, mixed $document): ?Schema => null));
@@ -80,6 +81,22 @@ final class MapperBuilderTest extends TestCase
 
         // …while a type-string target skips schema resolution entirely
         self::assertTrue($mapper->tryMap('list<int>', Source::json('[1, 2]'))->isSuccess());
+    }
+
+    public function testWithCacheSharesMetadataAcrossMapperInstances(): void
+    {
+        // GIVEN two mappers sharing one PSR-6 pool (≈ two requests)
+        $pool = new \JsonMine\Tests\Fixture\ArrayCachePool();
+        $first = MapperBuilder::create()->withCache($pool)->build();
+        $second = MapperBuilder::create()->withCache($pool)->build();
+
+        // WHEN
+        $first->map(Address::class, Source::json('{"street": "s", "city": "c"}'));
+        $second->map(Address::class, Source::json('{"street": "s2", "city": "c2"}'));
+
+        // THEN the second mapper reused the pooled metadata
+        self::assertSame(1, $pool->saves);
+        self::assertSame(1, $pool->hits);
     }
 
     public function testExternalVaultIsConsultedAfterExplicitBindings(): void

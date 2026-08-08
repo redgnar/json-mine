@@ -15,6 +15,7 @@ use JsonMine\Schema\Schema;
 use JsonMine\Schema\SchemaValidator;
 use JsonMine\Schema\SchemaVault;
 use JsonMine\Validation\ObjectValidator;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Configures and builds a {@see TreeMapper}. Immutable and fluent — each
@@ -23,6 +24,8 @@ use JsonMine\Validation\ObjectValidator;
 final class MapperBuilder
 {
     private ?SchemaValidator $schemaValidator = null;
+
+    private ?CacheItemPoolInterface $cachePool = null;
 
     private ?SchemaVault $externalVault = null;
 
@@ -48,6 +51,19 @@ final class MapperBuilder
     public static function create(): self
     {
         return new self();
+    }
+
+    /**
+     * PSR-6 pool for cross-request caching of mapper metadata (e.g. a
+     * symfony/cache adapter). Keys derive from class names only — clear the
+     * pool when deploying changed classes.
+     */
+    public function withCache(CacheItemPoolInterface $pool): self
+    {
+        $clone = clone $this;
+        $clone->cachePool = $pool;
+
+        return $clone;
     }
 
     /**
@@ -218,7 +234,7 @@ final class MapperBuilder
 
         return new Mapper(
             new TypeParser(),
-            new MetadataFactory(),
+            new MetadataFactory(new TypeParser(), $this->cachePool),
             $variants,
             $validators,
             $this->schemaValidator ?? new OpisSchemaValidator(),
