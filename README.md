@@ -14,6 +14,19 @@ One pass, one error format: schema violations, type-mapping problems, and
 semantic rule failures all land in a single report, each entry carrying an
 absolute JSON Pointer, a machine-readable code, and the offending value.
 
+## Installation
+
+```
+composer require ingot/ingot
+```
+
+No tagged release yet (pre-1.0) — until the first tag, require the development
+branch explicitly:
+
+```
+composer require ingot/ingot:dev-main
+```
+
 ## Quick start
 
 ```php
@@ -186,13 +199,14 @@ not used. `docker-compose.yml` exposes the same image to PhpStorm.
 ```
 make install   # composer install
 make test      # PHPUnit
-make ci        # the full pipeline: validate, cs, stan, tests, audit, deps, mutation
+make ci        # the full pipeline: validate, cs, stan, deptrac, tests, audit, deps, mutation
 make bench     # phpbench benchmarks
 ```
 
 Quality gates: PHPStan level max with strict rules, php-cs-fixer (PER-CS),
-Infection mutation testing (covered-code MSI 100%), composer audit and
-dependency-hygiene checks. CI runs the same gates on PHP 8.4 and 8.5.
+Deptrac module boundaries, Infection mutation testing (covered-code MSI 100%),
+composer audit and dependency-hygiene checks. CI runs the same gates on
+PHP 8.4 and 8.5.
 
 ## Status
 
