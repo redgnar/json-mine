@@ -60,6 +60,78 @@ if (!$result->isSuccess()) {
 $data = $mapper->normalize($person);
 ```
 
+## Working with JSON Schema
+
+Bind a schema to a class once — every `map()`/`tryMap()` of that class then
+validates the document first, and schema violations land in the same report
+as mapping errors (JSON Pointer + `schema.<keyword>` code):
+
+```php
+use JsonMine\Schema\Schema;
+
+$mapper = MapperBuilder::create()
+    ->withSchema(Person::class, Schema::fromFile(__DIR__ . '/schemas/person-1.0.json'))
+    ->build();
+
+$result = $mapper->tryMap(Person::class, Source::json('{"name": "Ada", "age": -1, "address": {}}'));
+
+foreach ($result->errors() as $error) {
+    // $error->pointer  '/age'
+    // $error->code     'schema.minimum'
+    // $error->message  'Number must be greater than or equal to 0'
+}
+```
+
+Schemas can also be resolved dynamically — by convention, from plugins, or by
+document content (the versioning hook) — and overridden per call:
+
+```php
+$mapper = MapperBuilder::create()
+    // decide per class (null = no schema, mapping proceeds with type checks only)
+    ->withSchemaResolver(
+        fn (string $class, mixed $document): ?Schema
+            => $document instanceof \stdClass && isset($document->version)
+                ? Schema::fromFile(__DIR__ . "/schemas/person-{$document->version}.json")
+                : null,
+    )
+    ->build();
+
+// a per-call override always wins over registered schemas:
+$mapper->tryMap(Person::class, Source::json($json)->withSchema(Schema::fromDocument(true)));
+```
+
+The reverse direction — generate a JSON Schema (draft 2020-12) from the same
+metadata the mapper reads, so the contract cannot drift from behavior. The
+generated schema validates documents produced by `normalize()` and can be
+shipped to other consumers (e.g. frontend validation with Ajv):
+
+```php
+use JsonMine\SchemaGen\SchemaGenerator;
+
+$schema = new SchemaGenerator()->generate(Person::class);
+
+file_put_contents(
+    'person.schema.json',
+    json_encode($schema->document, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES),
+);
+```
+
+For documents whose shape exists only at runtime (no classes to map to),
+validate against a schema and read values through `JsonNode`:
+
+```php
+use JsonMine\Schema\OpisSchemaValidator;
+use JsonMine\Tree\JsonNode;
+
+$report = new OpisSchemaValidator()->validate(json_decode($raw), $schema);
+
+if ($report->isEmpty()) {
+    $node = JsonNode::of(Source::json($raw));
+    $node->get('/customer/birthDate')->dateTime();
+    $node->get('/items')->list();
+}
+```
+
 ## Features
 
 - **Hybrid hydration** — constructor parameters first (invariants always run),
