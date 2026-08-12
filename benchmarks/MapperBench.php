@@ -28,6 +28,8 @@ final class MapperBench
 
     private string $json;
 
+    private string $schemaJson;
+
     public function setUp(): void
     {
         $fields = [];
@@ -42,7 +44,7 @@ final class MapperBench
 
         $this->mapper = MapperBuilder::create()->build();
 
-        $schema = Schema::fromJson(<<<'JSON'
+        $this->schemaJson = <<<'JSON'
             {
                 "type": "object",
                 "required": ["id", "fields"],
@@ -61,10 +63,10 @@ final class MapperBench
                     }
                 }
             }
-            JSON);
+            JSON;
 
         $this->mapperWithSchema = MapperBuilder::create()
-            ->withSchema(FormDefinition::class, $schema)
+            ->withSchema(FormDefinition::class, Schema::fromJson($this->schemaJson))
             ->build();
     }
 
@@ -87,5 +89,18 @@ final class MapperBench
     public function benchJsonDecodeOnlyBaseline(): void
     {
         json_decode($this->json, false, flags: \JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Worst-case schema usage: a fresh Schema instance on every call
+     * (per-request construction) — exercises the content-canonicalization
+     * pool in OpisSchemaValidator.
+     */
+    #[Revs(50)]
+    #[Iterations(5)]
+    public function benchHydrateWithFreshSchemaInstanceEachTime(): void
+    {
+        $source = Source::json($this->json)->withSchema(Schema::fromJson($this->schemaJson));
+        $this->mapper->map(FormDefinition::class, $source);
     }
 }

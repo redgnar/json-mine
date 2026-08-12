@@ -23,16 +23,20 @@ final class OpisSchemaValidator implements SchemaValidator
 {
     private readonly Validator $validator;
     private readonly ErrorFormatter $formatter;
+    private readonly SchemaDocumentPool $pool;
 
     public function __construct(int $maxErrors = 100)
     {
         $this->validator = new Validator(max_errors: $maxErrors, stop_at_first_error: false);
         $this->formatter = new ErrorFormatter();
+        $this->pool = new SchemaDocumentPool();
     }
 
     public function validate(mixed $document, Schema $schema): ErrorReport
     {
-        $error = $this->validator->validate($document, $schema->document)->error();
+        // Content-identical schemas resolve to one canonical \stdClass, so the
+        // opis loader's identity cache parses each distinct schema only once.
+        $error = $this->validator->validate($document, $this->pool->canonical($schema))->error();
 
         if ($error === null) {
             return ErrorReport::none();

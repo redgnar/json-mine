@@ -54,11 +54,12 @@ Local PHP is 8.1 — **all tools (tests included) run inside the pinned Docker i
 | `make stan` | PHPStan, level `max` + strict rules — zero errors, no baseline |
 | `make cs` | php-cs-fixer dry-run (check only) |
 | `make cs-fix` | php-cs-fixer apply |
+| `make deptrac` | Deptrac — module boundaries per `deptrac.yaml` (Tree/Schema/Validation are peers; only MapperBuilder wires layers together; attributes stay dependency-free) |
 | `make audit` | `composer audit` — known CVEs in dependencies |
 | `make deps` | composer-require-checker + composer-unused (dependency hygiene) |
 | `make mutation` | Infection mutation testing (`infection.json5`, minMsi 90 / minCoveredMsi 100) |
 | `make bench` | phpbench performance benchmarks (informational, not a CI gate) |
-| `make ci` | everything CI runs: validate + cs + stan + test + audit + deps + mutation |
+| `make ci` | everything CI runs: validate + cs + stan + deptrac + test + audit + deps + mutation |
 
 IDE: `docker-compose.yml` defines the `php` service for PhpStorm (CLI Interpreter → From Docker Compose → `php`; PHPUnit by Remote Interpreter with `/app/vendor/autoload.php`) — tests are runnable from the IDE through the same pinned image.
 

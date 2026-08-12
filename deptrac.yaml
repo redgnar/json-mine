@@ -1,0 +1,56 @@
+# Module boundaries — enforced in CI (make deptrac).
+#
+# Contract  = the public surface: Source, TreeMapper, results, JsonPointer, Coercion
+# Builder   = MapperBuilder, the only place allowed to wire everything together
+# Attribute = mapping attributes; must stay dependency-free
+# Tree/Schema/Validation are peers — none of them may reach into Mapping.
+deptrac:
+  paths:
+    - src
+  layers:
+    - name: Attribute
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\Attribute\\
+    - name: Error
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\Error\\
+    - name: Schema
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\Schema\\
+    - name: Validation
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\Validation\\
+    - name: Mapping
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\Mapping\\
+    - name: SchemaGen
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\SchemaGen\\
+    - name: Tree
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\Tree\\
+    - name: Builder
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\MapperBuilder$
+    - name: Contract
+      collectors:
+        - type: classLike
+          value: ^JsonMine\\(?!MapperBuilder$)[A-Za-z]+$
+  ruleset:
+    Attribute: ~
+    Error: [Contract]
+    Contract: [Error, Schema]
+    Schema: [Contract, Error]
+    Validation: [Contract, Error]
+    Mapping: [Contract, Error, Schema, Validation, Attribute]
+    SchemaGen: [Mapping, Schema]
+    Tree: [Contract, Error]
+    Builder: [Contract, Mapping, Schema, Validation]
