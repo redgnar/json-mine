@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Error;
+namespace Ingot\Error;
 
 /**
  * Immutable, ordered collection of mapping errors.

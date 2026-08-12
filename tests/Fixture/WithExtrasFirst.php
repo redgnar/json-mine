@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Attribute\Extras;
+use Ingot\Attribute\Extras;
 
 /**
  * The #[Extras] bag is not the last constructor parameter.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests;
+namespace Ingot\Tests;
 
-use JsonMine\MappingResult;
-use JsonMine\MappingSuccess;
+use Ingot\MappingResult;
+use Ingot\MappingSuccess;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

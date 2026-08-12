@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Examples\Forms\Definition;
+namespace Ingot\Examples\Forms\Definition;
 
-use JsonMine\Attribute\Discriminator;
+use Ingot\Attribute\Discriminator;
 
 /**
  * A form field — the discriminated-union root of the definition model.

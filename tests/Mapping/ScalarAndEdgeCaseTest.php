@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Mapping;
+namespace Ingot\Tests\Mapping;
 
-use JsonMine\Coercion;
-use JsonMine\MapperBuilder;
-use JsonMine\Source;
-use JsonMine\Tests\Fixture\DocblockOnly;
-use JsonMine\Tests\Fixture\Event;
-use JsonMine\Tests\Fixture\NoConstructor;
-use JsonMine\Tests\Fixture\NullableTags;
-use JsonMine\Tests\Fixture\TwoDocblockParams;
-use JsonMine\Tests\Fixture\UntypedExtras;
-use JsonMine\Tests\Fixture\Widget;
-use JsonMine\Tests\Fixture\WithExtrasFirst;
+use Ingot\Coercion;
+use Ingot\MapperBuilder;
+use Ingot\Source;
+use Ingot\Tests\Fixture\DocblockOnly;
+use Ingot\Tests\Fixture\Event;
+use Ingot\Tests\Fixture\NoConstructor;
+use Ingot\Tests\Fixture\NullableTags;
+use Ingot\Tests\Fixture\TwoDocblockParams;
+use Ingot\Tests\Fixture\UntypedExtras;
+use Ingot\Tests\Fixture\Widget;
+use Ingot\Tests\Fixture\WithExtrasFirst;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -183,12 +183,12 @@ final class ScalarAndEdgeCaseTest extends TestCase
         $mapper = MapperBuilder::create()->build();
 
         // WHEN
-        /** @var list<\JsonMine\Tests\Fixture\Priority> $priorities */
-        $priorities = $mapper->map('list<' . \JsonMine\Tests\Fixture\Priority::class . '>', Source::json('[1, 2]'));
-        $failure = $mapper->tryMap('list<' . \JsonMine\Tests\Fixture\Priority::class . '>', Source::json('[3]'));
+        /** @var list<\Ingot\Tests\Fixture\Priority> $priorities */
+        $priorities = $mapper->map('list<' . \Ingot\Tests\Fixture\Priority::class . '>', Source::json('[1, 2]'));
+        $failure = $mapper->tryMap('list<' . \Ingot\Tests\Fixture\Priority::class . '>', Source::json('[3]'));
 
         // THEN
-        self::assertSame([\JsonMine\Tests\Fixture\Priority::Low, \JsonMine\Tests\Fixture\Priority::High], $priorities);
+        self::assertSame([\Ingot\Tests\Fixture\Priority::Low, \Ingot\Tests\Fixture\Priority::High], $priorities);
         self::assertSame('Not a valid value — allowed: 1, 2.', $failure->errors()->errors[0]->message);
     }
 
@@ -199,7 +199,7 @@ final class ScalarAndEdgeCaseTest extends TestCase
 
         // WHEN maxLength (?int) is explicitly null
         $field = $mapper->map(
-            \JsonMine\Tests\Fixture\TextField::class,
+            \Ingot\Tests\Fixture\TextField::class,
             Source::json('{"name": "email", "maxLength": null}'),
         );
 
@@ -213,7 +213,7 @@ final class ScalarAndEdgeCaseTest extends TestCase
         $mapper = MapperBuilder::create()->build();
 
         // WHEN
-        $value = $mapper->map(\JsonMine\Tests\Fixture\MixedExtras::class, Source::json('{"id": "m1", "y": 2}'));
+        $value = $mapper->map(\Ingot\Tests\Fixture\MixedExtras::class, Source::json('{"id": "m1", "y": 2}'));
 
         // THEN
         self::assertSame(['y' => 2], $value->bag);
@@ -372,7 +372,7 @@ final class ScalarAndEdgeCaseTest extends TestCase
 
         // WHEN
         $result = $mapper->tryMap(
-            \JsonMine\Tests\Fixture\Amount::class,
+            \Ingot\Tests\Fixture\Amount::class,
             Source::json('{"cents": -5, "extra": true}'),
         );
 
@@ -385,13 +385,13 @@ final class ScalarAndEdgeCaseTest extends TestCase
     {
         // GIVEN two validators bound to one class, after an unrelated binding
         $mapper = MapperBuilder::create()
-            ->withValidator(NoConstructor::class, new \JsonMine\Tests\Fixture\AlwaysErrorValidator())
-            ->withValidator(\JsonMine\Tests\Fixture\Address::class, new \JsonMine\Tests\Fixture\AlwaysErrorValidator())
-            ->withValidator(\JsonMine\Tests\Fixture\Address::class, new \JsonMine\Tests\Fixture\AddressCityValidator())
+            ->withValidator(NoConstructor::class, new \Ingot\Tests\Fixture\AlwaysErrorValidator())
+            ->withValidator(\Ingot\Tests\Fixture\Address::class, new \Ingot\Tests\Fixture\AlwaysErrorValidator())
+            ->withValidator(\Ingot\Tests\Fixture\Address::class, new \Ingot\Tests\Fixture\AddressCityValidator())
             ->build();
 
         // WHEN
-        $result = $mapper->tryMap(\JsonMine\Tests\Fixture\Address::class, Source::json('{"street": "s", "city": ""}'));
+        $result = $mapper->tryMap(\Ingot\Tests\Fixture\Address::class, Source::json('{"street": "s", "city": ""}'));
 
         // THEN the unrelated binding was skipped, both bound validators ran
         $codes = array_map(static fn($error): string => $error->code, $result->errors()->errors);

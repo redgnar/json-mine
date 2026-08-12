@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Validation\ObjectValidator;
-use JsonMine\Validation\ValidationContext;
+use Ingot\Validation\ObjectValidator;
+use Ingot\Validation\ValidationContext;
 
 /**
  * @implements ObjectValidator<FormDefinition>

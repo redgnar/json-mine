@@ -11,39 +11,39 @@ deptrac:
     - name: Attribute
       collectors:
         - type: classLike
-          value: ^JsonMine\\Attribute\\
+          value: ^Ingot\\Attribute\\
     - name: Error
       collectors:
         - type: classLike
-          value: ^JsonMine\\Error\\
+          value: ^Ingot\\Error\\
     - name: Schema
       collectors:
         - type: classLike
-          value: ^JsonMine\\Schema\\
+          value: ^Ingot\\Schema\\
     - name: Validation
       collectors:
         - type: classLike
-          value: ^JsonMine\\Validation\\
+          value: ^Ingot\\Validation\\
     - name: Mapping
       collectors:
         - type: classLike
-          value: ^JsonMine\\Mapping\\
+          value: ^Ingot\\Mapping\\
     - name: SchemaGen
       collectors:
         - type: classLike
-          value: ^JsonMine\\SchemaGen\\
+          value: ^Ingot\\SchemaGen\\
     - name: Tree
       collectors:
         - type: classLike
-          value: ^JsonMine\\Tree\\
+          value: ^Ingot\\Tree\\
     - name: Builder
       collectors:
         - type: classLike
-          value: ^JsonMine\\MapperBuilder$
+          value: ^Ingot\\MapperBuilder$
     - name: Contract
       collectors:
         - type: classLike
-          value: ^JsonMine\\(?!MapperBuilder$)[A-Za-z]+$
+          value: ^Ingot\\(?!MapperBuilder$)[A-Za-z]+$
   ruleset:
     Attribute: ~
     Error: [Contract]

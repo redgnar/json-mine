@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Mapping;
+namespace Ingot\Tests\Mapping;
 
-use JsonMine\MapperBuilder;
-use JsonMine\Source;
-use JsonMine\Tests\Fixture\BadExtrasProp;
-use JsonMine\Tests\Fixture\CtorInitialized;
-use JsonMine\Tests\Fixture\GuardedProps;
-use JsonMine\Tests\Fixture\HybridSlug;
-use JsonMine\Tests\Fixture\PropsOnly;
-use JsonMine\Tests\Fixture\PropsWithExtras;
-use JsonMine\Tests\Fixture\UntypedExtrasProp;
+use Ingot\MapperBuilder;
+use Ingot\Source;
+use Ingot\Tests\Fixture\BadExtrasProp;
+use Ingot\Tests\Fixture\CtorInitialized;
+use Ingot\Tests\Fixture\GuardedProps;
+use Ingot\Tests\Fixture\HybridSlug;
+use Ingot\Tests\Fixture\PropsOnly;
+use Ingot\Tests\Fixture\PropsWithExtras;
+use Ingot\Tests\Fixture\UntypedExtrasProp;
 use PHPUnit\Framework\TestCase;
 
 /**

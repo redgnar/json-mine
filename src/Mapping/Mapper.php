@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping;
+namespace Ingot\Mapping;
 
-use JsonMine\Coercion;
-use JsonMine\Error\ErrorReport;
-use JsonMine\Error\MappingError;
-use JsonMine\JsonPointer;
-use JsonMine\Mapping\Metadata\MetadataFactory;
-use JsonMine\Mapping\Type\TypeParser;
-use JsonMine\MappingFailure;
-use JsonMine\MappingResult;
-use JsonMine\MappingSuccess;
-use JsonMine\Schema\SchemaValidator;
-use JsonMine\Schema\SchemaVault;
-use JsonMine\Source;
-use JsonMine\TreeMapper;
-use JsonMine\Validation\ValidationContext;
+use Ingot\Coercion;
+use Ingot\Error\ErrorReport;
+use Ingot\Error\MappingError;
+use Ingot\JsonPointer;
+use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\TypeParser;
+use Ingot\MappingFailure;
+use Ingot\MappingResult;
+use Ingot\MappingSuccess;
+use Ingot\Schema\SchemaValidator;
+use Ingot\Schema\SchemaVault;
+use Ingot\Source;
+use Ingot\TreeMapper;
+use Ingot\Validation\ValidationContext;
 
 /**
  * The TreeMapper implementation: schema pre-check (per-call override or
  * vault) → hydration → semantic validators, one aggregated report.
  *
- * Built by {@see \JsonMine\MapperBuilder}; build once, map many times.
+ * Built by {@see \Ingot\MapperBuilder}; build once, map many times.
  *
  * @internal
  */

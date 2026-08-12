@@ -15,7 +15,7 @@ Rationale:
 ## Interface sketch
 
 ```php
-namespace JsonMine\Validation;
+namespace Ingot\Validation;
 
 /**
  * Validates a hydrated object beyond schema and type checks.
@@ -37,7 +37,7 @@ interface ObjectValidator
 ```
 
 ```php
-namespace JsonMine\Validation;
+namespace Ingot\Validation;
 
 final class ValidationContext
 {

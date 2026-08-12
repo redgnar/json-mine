@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping\Metadata;
+namespace Ingot\Mapping\Metadata;
 
 /**
  * How a class hydrates from a JSON object.

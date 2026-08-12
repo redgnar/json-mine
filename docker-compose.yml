@@ -3,7 +3,7 @@
 services:
   php:
     build: docker
-    image: json-mine-dev
+    image: ingot-dev
     working_dir: /app
     volumes:
       - .:/app

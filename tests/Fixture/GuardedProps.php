@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
 /**
  * A failed member must prevent the property phase from running: setting $v

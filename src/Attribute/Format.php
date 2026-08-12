@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Attribute;
+namespace Ingot\Attribute;
 
 /**
  * Disambiguates string conversions for a constructor parameter,

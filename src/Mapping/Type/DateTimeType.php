@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping\Type;
+namespace Ingot\Mapping\Type;
 
 /**
  * Target is \DateTimeImmutable, produced from a date-time string.

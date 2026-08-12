@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Schema;
+namespace Ingot\Tests\Schema;
 
-use JsonMine\Schema\Schema;
+use Ingot\Schema\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Error\ErrorReport;
-use JsonMine\Error\MappingError;
-use JsonMine\JsonPointer;
-use JsonMine\Schema\Schema;
-use JsonMine\Schema\SchemaValidator;
+use Ingot\Error\ErrorReport;
+use Ingot\Error\MappingError;
+use Ingot\JsonPointer;
+use Ingot\Schema\Schema;
+use Ingot\Schema\SchemaValidator;
 
 /**
  * Stub backend rejecting every document with a recognizable code.

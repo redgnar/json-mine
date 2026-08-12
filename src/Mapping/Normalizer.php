@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping;
+namespace Ingot\Mapping;
 
-use JsonMine\Mapping\Metadata\ClassMetadata;
-use JsonMine\Mapping\Metadata\MetadataFactory;
-use JsonMine\Mapping\Type\NullableType;
-use JsonMine\Mapping\Type\TypeNode;
+use Ingot\Mapping\Metadata\ClassMetadata;
+use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\NullableType;
+use Ingot\Mapping\Type\TypeNode;
 
 /**
  * The reverse of hydration: typed PHP values → json_encode-ready data,

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Schema;
+namespace Ingot\Tests\Schema;
 
-use JsonMine\Schema\Schema;
-use JsonMine\Schema\SchemaDocumentPool;
+use Ingot\Schema\Schema;
+use Ingot\Schema\SchemaDocumentPool;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

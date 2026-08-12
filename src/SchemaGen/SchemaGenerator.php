@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\SchemaGen;
+namespace Ingot\SchemaGen;
 
-use JsonMine\Mapping\Metadata\MetadataFactory;
-use JsonMine\Mapping\Type\ClassType;
-use JsonMine\Mapping\Type\DateTimeType;
-use JsonMine\Mapping\Type\EnumType;
-use JsonMine\Mapping\Type\ListType;
-use JsonMine\Mapping\Type\MapType;
-use JsonMine\Mapping\Type\MixedType;
-use JsonMine\Mapping\Type\NullableType;
-use JsonMine\Mapping\Type\ScalarKind;
-use JsonMine\Mapping\Type\ScalarType;
-use JsonMine\Mapping\Type\TypeNode;
-use JsonMine\Mapping\Type\TypeParser;
-use JsonMine\Mapping\VariantRegistry;
-use JsonMine\Schema\Schema;
+use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\ClassType;
+use Ingot\Mapping\Type\DateTimeType;
+use Ingot\Mapping\Type\EnumType;
+use Ingot\Mapping\Type\ListType;
+use Ingot\Mapping\Type\MapType;
+use Ingot\Mapping\Type\MixedType;
+use Ingot\Mapping\Type\NullableType;
+use Ingot\Mapping\Type\ScalarKind;
+use Ingot\Mapping\Type\ScalarType;
+use Ingot\Mapping\Type\TypeNode;
+use Ingot\Mapping\Type\TypeParser;
+use Ingot\Mapping\VariantRegistry;
+use Ingot\Schema\Schema;
 
 /**
  * Generates JSON Schema (draft 2020-12) from mapping targets, reading the

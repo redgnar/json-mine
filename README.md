@@ -1,6 +1,6 @@
-# json-mine
+# ingot
 
-[![CI](https://github.com/redgnar/json-mine/actions/workflows/ci.yml/badge.svg)](https://github.com/redgnar/json-mine/actions/workflows/ci.yml)
+[![CI](https://github.com/redgnar/ingot/actions/workflows/ci.yml/badge.svg)](https://github.com/redgnar/ingot/actions/workflows/ci.yml)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A5%208.4-777BB4?logo=php&logoColor=white)](composer.json)
 [![PHPStan](https://img.shields.io/badge/PHPStan-level%20max%20%2B%20strict-brightgreen)](phpstan.neon.dist)
 [![Mutation testing](https://img.shields.io/badge/Infection-covered%20MSI%20100%25-blue)](infection.json5)
@@ -17,8 +17,8 @@ absolute JSON Pointer, a machine-readable code, and the offending value.
 ## Quick start
 
 ```php
-use JsonMine\MapperBuilder;
-use JsonMine\Source;
+use Ingot\MapperBuilder;
+use Ingot\Source;
 
 final readonly class Address
 {
@@ -67,7 +67,7 @@ validates the document first, and schema violations land in the same report
 as mapping errors (JSON Pointer + `schema.<keyword>` code):
 
 ```php
-use JsonMine\Schema\Schema;
+use Ingot\Schema\Schema;
 
 $mapper = MapperBuilder::create()
     ->withSchema(Person::class, Schema::fromFile(__DIR__ . '/schemas/person-1.0.json'))
@@ -106,7 +106,7 @@ generated schema validates documents produced by `normalize()` and can be
 shipped to other consumers (e.g. frontend validation with Ajv):
 
 ```php
-use JsonMine\SchemaGen\SchemaGenerator;
+use Ingot\SchemaGen\SchemaGenerator;
 
 $schema = new SchemaGenerator()->generate(Person::class);
 
@@ -120,8 +120,8 @@ For documents whose shape exists only at runtime (no classes to map to),
 validate against a schema and read values through `JsonNode`:
 
 ```php
-use JsonMine\Schema\OpisSchemaValidator;
-use JsonMine\Tree\JsonNode;
+use Ingot\Schema\OpisSchemaValidator;
+use Ingot\Tree\JsonNode;
 
 $report = new OpisSchemaValidator()->validate(json_decode($raw), $schema);
 

@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Examples\Forms;
+namespace Ingot\Examples\Forms;
 
-use JsonMine\Error\ErrorReport;
-use JsonMine\Error\MappingError;
-use JsonMine\Examples\Forms\Definition\Field;
-use JsonMine\Examples\Forms\Definition\FormDefinition;
-use JsonMine\Examples\Forms\Definition\GenericField;
-use JsonMine\Examples\Forms\Definition\UniqueFieldNamesValidator;
-use JsonMine\JsonPointer;
-use JsonMine\MapperBuilder;
-use JsonMine\Schema\OpisSchemaValidator;
-use JsonMine\Schema\Schema;
-use JsonMine\Schema\SchemaValidator;
-use JsonMine\Source;
-use JsonMine\Tree\JsonNode;
-use JsonMine\TreeMapper;
+use Ingot\Error\ErrorReport;
+use Ingot\Error\MappingError;
+use Ingot\Examples\Forms\Definition\Field;
+use Ingot\Examples\Forms\Definition\FormDefinition;
+use Ingot\Examples\Forms\Definition\GenericField;
+use Ingot\Examples\Forms\Definition\UniqueFieldNamesValidator;
+use Ingot\JsonPointer;
+use Ingot\MapperBuilder;
+use Ingot\Schema\OpisSchemaValidator;
+use Ingot\Schema\Schema;
+use Ingot\Schema\SchemaValidator;
+use Ingot\Source;
+use Ingot\Tree\JsonNode;
+use Ingot\TreeMapper;
 
 /**
  * The whole form pipeline wired together:
@@ -46,7 +46,7 @@ final class FormProcessor
     }
 
     /**
-     * @throws \JsonMine\Error\MappingFailed with the aggregated report (meta-schema,
+     * @throws \Ingot\Error\MappingFailed with the aggregated report (meta-schema,
      *         type mapping, and semantic rules) when the definition is invalid
      */
     public function loadDefinition(Source $source): FormDefinition
@@ -83,7 +83,7 @@ final class FormProcessor
      * Typed access to validated submission values (form data has no classes —
      * its shape exists only in the definition).
      *
-     * @throws \JsonMine\Error\MappingFailed when the submission is not valid JSON
+     * @throws \Ingot\Error\MappingFailed when the submission is not valid JSON
      */
     public function values(Source $submission): JsonNode
     {

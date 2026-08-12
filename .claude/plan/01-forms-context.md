@@ -45,7 +45,7 @@ data.json ────────(4) validate w/ data-schema──────(
 4. **Data validation** with the derived schema (again delegated) — hot path, so the schema is derived once and cached together with the definition.
 5. **Data access**: either a dynamic typed tree (types converted per the schema) — the only option for configurator-built forms — or mapping onto a user DTO with the same TreeMapper, for forms with known classes.
 
-## Boundary: what belongs to the library (json-mine) vs the forms project
+## Boundary: what belongs to the library (ingot) vs the forms project
 
 The library is a **generic toolkit** (nothing form-specific inside):
 
@@ -78,6 +78,6 @@ The forms project (a separate package) consumes the toolkit: it defines the `For
 ## Open questions
 
 1. **Does form value validation fit within pure JSON Schema?** Conditional rules (field B required when A="x") are expressible (`if/then`, `dependentRequired`), but cross-field/business validations (e.g. "end date > start date") are a poor fit. Decide: (a) everything in JSON Schema (full frontend portability), (b) schema + an extended rules layer in PHP, (c) a custom, simpler rule language in the form definition, translated to JSON Schema where possible. → **Resolved**: the core does not deal with conditional/business rules at all — it only exposes the validator extension point; such rules live in consumer plugins (with their own vocabulary), which may or may not translate parts into the derived JSON Schema — see [03-custom-validation-design.md](03-custom-validation-design.md).
-2. **Package structure**: a monorepo with two packages (`json-mine/core` + `json-mine/forms`) or a single repo for now, split later?
+2. **Package structure**: a monorepo with two packages (`ingot/core` + `ingot/forms`) or a single repo for now, split later?
 3. **8.4 vs 8.5 as the minimum**: 8.4 suffices (lazy objects, property hooks); 8.5 only if nothing existing must run it.
 4. **How much Valinor do we "borrow"**: build the Mapper from scratch, or in the MVP internally base hydration on `cuyz/valinor` (behind our own API facade) and swap the engine later? Faster time-to-market vs control over performance and the error format.

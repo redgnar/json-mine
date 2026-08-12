@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Mapping\Metadata;
+namespace Ingot\Tests\Mapping\Metadata;
 
-use JsonMine\Mapping\Metadata\MetadataFactory;
-use JsonMine\Mapping\Type\TypeParser;
-use JsonMine\Tests\Fixture\Address;
-use JsonMine\Tests\Fixture\ArrayCachePool;
-use JsonMine\Tests\Fixture\BadExtras;
-use JsonMine\Tests\Fixture\Person;
-use JsonMine\Tests\Fixture\UnionNative;
-use JsonMine\Tests\Fixture\Variadic;
+use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\TypeParser;
+use Ingot\Tests\Fixture\Address;
+use Ingot\Tests\Fixture\ArrayCachePool;
+use Ingot\Tests\Fixture\BadExtras;
+use Ingot\Tests\Fixture\Person;
+use Ingot\Tests\Fixture\UnionNative;
+use Ingot\Tests\Fixture\Variadic;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

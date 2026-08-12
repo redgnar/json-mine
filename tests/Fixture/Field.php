@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Attribute\Discriminator;
+use Ingot\Attribute\Discriminator;
 
 #[Discriminator('type', map: [
     'text' => TextField::class,

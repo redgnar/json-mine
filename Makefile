@@ -20,7 +20,7 @@ coverage:
 	$(RUN) vendor/bin/phpunit --coverage-text
 
 stan:
-	$(RUN) vendor/bin/phpstan analyse --no-progress
+	$(RUN) vendor/bin/phpstan analyse --no-progress --memory-limit=512M
 
 cs:
 	$(RUN) vendor/bin/php-cs-fixer fix --dry-run --diff

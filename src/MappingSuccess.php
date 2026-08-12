@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine;
+namespace Ingot;
 
-use JsonMine\Error\ErrorReport;
+use Ingot\Error\ErrorReport;
 
 /**
  * @template-covariant T

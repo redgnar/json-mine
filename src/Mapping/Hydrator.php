@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping;
+namespace Ingot\Mapping;
 
-use JsonMine\Coercion;
-use JsonMine\Error\MappingError;
-use JsonMine\JsonPointer;
-use JsonMine\Mapping\Metadata\ClassMetadata;
-use JsonMine\Mapping\Metadata\MetadataFactory;
-use JsonMine\Mapping\Type\ClassType;
-use JsonMine\Mapping\Type\DateTimeType;
-use JsonMine\Mapping\Type\EnumType;
-use JsonMine\Mapping\Type\ListType;
-use JsonMine\Mapping\Type\MapType;
-use JsonMine\Mapping\Type\MixedType;
-use JsonMine\Mapping\Type\NullableType;
-use JsonMine\Mapping\Type\ScalarKind;
-use JsonMine\Mapping\Type\ScalarType;
-use JsonMine\Mapping\Type\TypeNode;
+use Ingot\Coercion;
+use Ingot\Error\MappingError;
+use Ingot\JsonPointer;
+use Ingot\Mapping\Metadata\ClassMetadata;
+use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\ClassType;
+use Ingot\Mapping\Type\DateTimeType;
+use Ingot\Mapping\Type\EnumType;
+use Ingot\Mapping\Type\ListType;
+use Ingot\Mapping\Type\MapType;
+use Ingot\Mapping\Type\MixedType;
+use Ingot\Mapping\Type\NullableType;
+use Ingot\Mapping\Type\ScalarKind;
+use Ingot\Mapping\Type\ScalarType;
+use Ingot\Mapping\Type\TypeNode;
 
 /**
  * Recursive hydration engine: decoded JSON value + type tree → typed PHP value.

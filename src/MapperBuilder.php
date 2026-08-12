@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace JsonMine;
+namespace Ingot;
 
-use JsonMine\Mapping\Mapper;
-use JsonMine\Mapping\Metadata\MetadataFactory;
-use JsonMine\Mapping\Type\TypeParser;
-use JsonMine\Mapping\ValidatorRegistry;
-use JsonMine\Mapping\VariantRegistry;
-use JsonMine\Schema\InMemorySchemaVault;
-use JsonMine\Schema\OpisSchemaValidator;
-use JsonMine\Schema\Schema;
-use JsonMine\Schema\SchemaValidator;
-use JsonMine\Schema\SchemaVault;
-use JsonMine\Validation\ObjectValidator;
+use Ingot\Mapping\Mapper;
+use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\TypeParser;
+use Ingot\Mapping\ValidatorRegistry;
+use Ingot\Mapping\VariantRegistry;
+use Ingot\Schema\InMemorySchemaVault;
+use Ingot\Schema\OpisSchemaValidator;
+use Ingot\Schema\Schema;
+use Ingot\Schema\SchemaValidator;
+use Ingot\Schema\SchemaVault;
+use Ingot\Validation\ObjectValidator;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**

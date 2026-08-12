@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests;
+namespace Ingot\Tests;
 
-use JsonMine\Coercion;
-use JsonMine\MapperBuilder;
-use JsonMine\Schema\InMemorySchemaVault;
-use JsonMine\Schema\Schema;
-use JsonMine\Source;
-use JsonMine\Tests\Fixture\Address;
-use JsonMine\Tests\Fixture\AlwaysErrorValidator;
-use JsonMine\Tests\Fixture\CustomField;
-use JsonMine\Tests\Fixture\Field;
-use JsonMine\Tests\Fixture\GenericField;
-use JsonMine\Tests\Fixture\RejectingSchemaValidator;
+use Ingot\Coercion;
+use Ingot\MapperBuilder;
+use Ingot\Schema\InMemorySchemaVault;
+use Ingot\Schema\Schema;
+use Ingot\Source;
+use Ingot\Tests\Fixture\Address;
+use Ingot\Tests\Fixture\AlwaysErrorValidator;
+use Ingot\Tests\Fixture\CustomField;
+use Ingot\Tests\Fixture\Field;
+use Ingot\Tests\Fixture\GenericField;
+use Ingot\Tests\Fixture\RejectingSchemaValidator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -27,7 +27,7 @@ final class MapperBuilderTest extends TestCase
         $base = MapperBuilder::create();
 
         // WHEN / THEN — the builder is immutable
-        self::assertNotSame($base, $base->withCache(new \JsonMine\Tests\Fixture\ArrayCachePool()));
+        self::assertNotSame($base, $base->withCache(new \Ingot\Tests\Fixture\ArrayCachePool()));
         self::assertNotSame($base, $base->withSchemaValidator(new RejectingSchemaValidator()));
         self::assertNotSame($base, $base->withSchema(Address::class, Schema::fromDocument(true)));
         self::assertNotSame($base, $base->withSchemaResolver(static fn(string $class, mixed $document): ?Schema => null));
@@ -86,7 +86,7 @@ final class MapperBuilderTest extends TestCase
     public function testWithCacheSharesMetadataAcrossMapperInstances(): void
     {
         // GIVEN two mappers sharing one PSR-6 pool (≈ two requests)
-        $pool = new \JsonMine\Tests\Fixture\ArrayCachePool();
+        $pool = new \Ingot\Tests\Fixture\ArrayCachePool();
         $first = MapperBuilder::create()->withCache($pool)->build();
         $second = MapperBuilder::create()->withCache($pool)->build();
 

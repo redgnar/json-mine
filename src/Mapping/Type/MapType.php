@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping\Type;
+namespace Ingot\Mapping\Type;
 
 /**
  * A JSON object mapped to a PHP associative array.

@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\SchemaGen;
+namespace Ingot\Tests\SchemaGen;
 
-use JsonMine\MapperBuilder;
-use JsonMine\Mapping\Metadata\MetadataFactory;
-use JsonMine\Mapping\Type\TypeParser;
-use JsonMine\Mapping\VariantRegistry;
-use JsonMine\Schema\OpisSchemaValidator;
-use JsonMine\Schema\Schema;
-use JsonMine\SchemaGen\SchemaGenerator;
-use JsonMine\Source;
-use JsonMine\Tests\Fixture\Color;
-use JsonMine\Tests\Fixture\CustomField;
-use JsonMine\Tests\Fixture\Field;
-use JsonMine\Tests\Fixture\FormDefinition;
-use JsonMine\Tests\Fixture\Person;
-use JsonMine\Tests\Fixture\PropsWithExtras;
-use JsonMine\Tests\Fixture\TreeNode;
+use Ingot\MapperBuilder;
+use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\TypeParser;
+use Ingot\Mapping\VariantRegistry;
+use Ingot\Schema\OpisSchemaValidator;
+use Ingot\Schema\Schema;
+use Ingot\SchemaGen\SchemaGenerator;
+use Ingot\Source;
+use Ingot\Tests\Fixture\Color;
+use Ingot\Tests\Fixture\CustomField;
+use Ingot\Tests\Fixture\Field;
+use Ingot\Tests\Fixture\FormDefinition;
+use Ingot\Tests\Fixture\Person;
+use Ingot\Tests\Fixture\PropsWithExtras;
+use Ingot\Tests\Fixture\TreeNode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -57,10 +57,10 @@ final class SchemaGeneratorTest extends TestCase
     public function testPropertyHydratedClassContributesItsMembers(): void
     {
         // GIVEN a class hydrated exclusively through properties
-        $document = $this->doc(new SchemaGenerator()->generate(\JsonMine\Tests\Fixture\PropsOnly::class));
+        $document = $this->doc(new SchemaGenerator()->generate(\Ingot\Tests\Fixture\PropsOnly::class));
 
         // WHEN
-        $def = $this->def($document, 'JsonMine.Tests.Fixture.PropsOnly');
+        $def = $this->def($document, 'Ingot.Tests.Fixture.PropsOnly');
 
         // THEN static members are excluded; required = no default, not nullable
         self::assertSame(
@@ -74,10 +74,10 @@ final class SchemaGeneratorTest extends TestCase
     {
         // GIVEN a #[Discriminator] root whose variants come from plugins only,
         // and no plugin registered any
-        $document = $this->doc(new SchemaGenerator()->generate(\JsonMine\Tests\Fixture\Widget::class));
+        $document = $this->doc(new SchemaGenerator()->generate(\Ingot\Tests\Fixture\Widget::class));
 
         // WHEN
-        $def = $this->def($document, 'JsonMine.Tests.Fixture.Widget');
+        $def = $this->def($document, 'Ingot.Tests.Fixture.Widget');
 
         // THEN no anyOf materializes out of thin air
         self::assertSame('object', $def['type'] ?? null);
@@ -130,16 +130,16 @@ final class SchemaGeneratorTest extends TestCase
         $document = $this->doc($generator->generate(Person::class));
 
         // THEN the root references the Person definition
-        self::assertSame('#/$defs/JsonMine.Tests.Fixture.Person', $document['$ref']);
+        self::assertSame('#/$defs/Ingot.Tests.Fixture.Person', $document['$ref']);
 
-        $person = $this->def($document, 'JsonMine.Tests.Fixture.Person');
+        $person = $this->def($document, 'Ingot.Tests.Fixture.Person');
         self::assertSame('object', $person['type']);
         // required = no default and not nullable; tags/nickname have defaults
         self::assertSame(['name', 'age', 'address'], $person['required']);
-        self::assertSame(['$ref' => '#/$defs/JsonMine.Tests.Fixture.Address'], self::arr($person['properties'])['address']);
+        self::assertSame(['$ref' => '#/$defs/Ingot.Tests.Fixture.Address'], self::arr($person['properties'])['address']);
         self::assertFalse($person['additionalProperties']);
 
-        $address = $this->def($document, 'JsonMine.Tests.Fixture.Address');
+        $address = $this->def($document, 'Ingot.Tests.Fixture.Address');
         self::assertSame(['street', 'city'], $address['required']);
     }
 
@@ -150,7 +150,7 @@ final class SchemaGeneratorTest extends TestCase
 
         // THEN unknown keys are legal for classes with an #[Extras] bag,
         // and members declared after the bag still contribute
-        $def = $this->def($document, 'JsonMine.Tests.Fixture.PropsWithExtras');
+        $def = $this->def($document, 'Ingot.Tests.Fixture.PropsWithExtras');
         self::assertTrue($def['additionalProperties']);
         self::assertSame(['id', 'created_at', 'meta'], array_keys(self::arr($def['properties'])));
     }
@@ -166,19 +166,19 @@ final class SchemaGeneratorTest extends TestCase
         $document = $this->doc($generator->generate(Field::class));
 
         // THEN the root is an anyOf over all three variants…
-        $union = $this->def($document, 'JsonMine.Tests.Fixture.Field');
+        $union = $this->def($document, 'Ingot.Tests.Fixture.Field');
         self::assertCount(3, self::arr($union['anyOf']));
 
         // …and each variant requires its discriminator as a const
-        $text = $this->def($document, 'JsonMine.Tests.Fixture.TextField');
+        $text = $this->def($document, 'Ingot.Tests.Fixture.TextField');
         self::assertSame(['const' => 'text'], self::arr($text['properties'])['type']);
         self::assertSame(['type', 'name'], $text['required']);
 
-        $custom = $this->def($document, 'JsonMine.Tests.Fixture.CustomField');
+        $custom = $this->def($document, 'Ingot.Tests.Fixture.CustomField');
         self::assertSame(['const' => 'custom'], self::arr($custom['properties'])['type']);
 
         // the discriminator prepends — every original required member survives
-        $select = $this->def($document, 'JsonMine.Tests.Fixture.SelectField');
+        $select = $this->def($document, 'Ingot.Tests.Fixture.SelectField');
         self::assertSame(['type', 'name', 'options'], $select['required']);
     }
 
@@ -188,9 +188,9 @@ final class SchemaGeneratorTest extends TestCase
         $document = $this->doc(new SchemaGenerator()->generate(TreeNode::class));
 
         // THEN
-        $node = $this->def($document, 'JsonMine.Tests.Fixture.TreeNode');
+        $node = $this->def($document, 'Ingot.Tests.Fixture.TreeNode');
         self::assertSame(
-            ['type' => 'array', 'items' => ['$ref' => '#/$defs/JsonMine.Tests.Fixture.TreeNode']],
+            ['type' => 'array', 'items' => ['$ref' => '#/$defs/Ingot.Tests.Fixture.TreeNode']],
             self::arr($node['properties'])['children'],
         );
     }

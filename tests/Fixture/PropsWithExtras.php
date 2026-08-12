@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Attribute\Extras;
-use JsonMine\Attribute\Name;
+use Ingot\Attribute\Extras;
+use Ingot\Attribute\Name;
 
 /**
  * Property-level #[Name] and #[Extras].

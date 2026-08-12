@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Validation;
+namespace Ingot\Tests\Validation;
 
-use JsonMine\JsonPointer;
-use JsonMine\Validation\ValidationContext;
+use Ingot\JsonPointer;
+use Ingot\Validation\ValidationContext;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

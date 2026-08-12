@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping;
+namespace Ingot\Mapping;
 
-use JsonMine\Validation\ObjectValidator;
+use Ingot\Validation\ObjectValidator;
 
 /**
  * Validators bound to target classes. A validator runs for every hydrated

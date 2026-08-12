@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
 /**
  * No constructor — everything hydrates through properties, including

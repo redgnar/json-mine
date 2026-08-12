@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Schema;
+namespace Ingot\Schema;
 
 /**
  * A JSON Schema document.

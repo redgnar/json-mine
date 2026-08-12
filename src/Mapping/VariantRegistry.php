@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping;
+namespace Ingot\Mapping;
 
 /**
  * Runtime registry for open discriminated unions: variants registered by

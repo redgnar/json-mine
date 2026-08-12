@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Tree;
+namespace Ingot\Tests\Tree;
 
-use JsonMine\Error\MappingFailed;
-use JsonMine\Source;
-use JsonMine\Tree\JsonNode;
+use Ingot\Error\MappingFailed;
+use Ingot\Source;
+use Ingot\Tree\JsonNode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

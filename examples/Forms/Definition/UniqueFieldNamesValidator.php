@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Examples\Forms\Definition;
+namespace Ingot\Examples\Forms\Definition;
 
-use JsonMine\Validation\ObjectValidator;
-use JsonMine\Validation\ValidationContext;
+use Ingot\Validation\ObjectValidator;
+use Ingot\Validation\ValidationContext;
 
 /**
  * A rule JSON Schema cannot express: field names must be unique across the

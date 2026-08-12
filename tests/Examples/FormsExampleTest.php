@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Examples;
+namespace Ingot\Tests\Examples;
 
-use JsonMine\Error\MappingFailed;
-use JsonMine\Examples\Forms\Definition\GenericField;
-use JsonMine\Examples\Forms\Definition\TextField;
-use JsonMine\Examples\Forms\FormProcessor;
-use JsonMine\Source;
+use Ingot\Error\MappingFailed;
+use Ingot\Examples\Forms\Definition\GenericField;
+use Ingot\Examples\Forms\Definition\TextField;
+use Ingot\Examples\Forms\FormProcessor;
+use Ingot\Source;
 use PHPUnit\Framework\TestCase;
 
 /**

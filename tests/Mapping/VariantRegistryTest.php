@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Mapping;
+namespace Ingot\Tests\Mapping;
 
-use JsonMine\Mapping\VariantRegistry;
-use JsonMine\Tests\Fixture\Address;
-use JsonMine\Tests\Fixture\CustomField;
-use JsonMine\Tests\Fixture\Field;
-use JsonMine\Tests\Fixture\GenericField;
+use Ingot\Mapping\VariantRegistry;
+use Ingot\Tests\Fixture\Address;
+use Ingot\Tests\Fixture\CustomField;
+use Ingot\Tests\Fixture\Field;
+use Ingot\Tests\Fixture\GenericField;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

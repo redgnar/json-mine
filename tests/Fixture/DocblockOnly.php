@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
 /**
  * The parameter type comes exclusively from the docblock (no native type).

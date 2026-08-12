@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Schema;
+namespace Ingot\Schema;
 
 /**
  * Answers which JSON Schema (if any) applies to a mapping target class.

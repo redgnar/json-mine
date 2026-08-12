@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
 /**
  * Native nullability must survive a non-nullable docblock refinement.

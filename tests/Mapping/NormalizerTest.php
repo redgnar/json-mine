@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Mapping;
+namespace Ingot\Tests\Mapping;
 
-use JsonMine\MapperBuilder;
-use JsonMine\Source;
-use JsonMine\Tests\Fixture\Address;
-use JsonMine\Tests\Fixture\Color;
-use JsonMine\Tests\Fixture\CustomField;
-use JsonMine\Tests\Fixture\Event;
-use JsonMine\Tests\Fixture\Field;
-use JsonMine\Tests\Fixture\FormDefinition;
-use JsonMine\Tests\Fixture\GenericField;
-use JsonMine\Tests\Fixture\Person;
-use JsonMine\Tests\Fixture\PropsWithExtras;
+use Ingot\MapperBuilder;
+use Ingot\Source;
+use Ingot\Tests\Fixture\Address;
+use Ingot\Tests\Fixture\Color;
+use Ingot\Tests\Fixture\CustomField;
+use Ingot\Tests\Fixture\Event;
+use Ingot\Tests\Fixture\Field;
+use Ingot\Tests\Fixture\FormDefinition;
+use Ingot\Tests\Fixture\GenericField;
+use Ingot\Tests\Fixture\Person;
+use Ingot\Tests\Fixture\PropsWithExtras;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -84,7 +84,7 @@ final class NormalizerTest extends TestCase
     {
         // GIVEN a closed-union variant (map on the Field root)
         $mapper = MapperBuilder::create()->build();
-        $field = new \JsonMine\Tests\Fixture\TextField('email', 120);
+        $field = new \Ingot\Tests\Fixture\TextField('email', 120);
 
         // WHEN
         $normalized = $mapper->normalize($field);
@@ -169,7 +169,7 @@ final class NormalizerTest extends TestCase
         // note is a missing nullable, nums differs from its default
         $mapper = MapperBuilder::create()->build();
         $value = $mapper->map(
-            \JsonMine\Tests\Fixture\PropsOnly::class,
+            \Ingot\Tests\Fixture\PropsOnly::class,
             Source::json('{"id": "p1", "name": "Ada", "count": 3, "nums": [1]}'),
         );
 
@@ -189,7 +189,7 @@ final class NormalizerTest extends TestCase
         // GIVEN status no longer equals its declared default
         $mapper = MapperBuilder::create()->build();
         $value = $mapper->map(
-            \JsonMine\Tests\Fixture\PropsOnly::class,
+            \Ingot\Tests\Fixture\PropsOnly::class,
             Source::json('{"id": "p1", "name": "Ada", "count": 0, "status": "open"}'),
         );
 
@@ -205,7 +205,7 @@ final class NormalizerTest extends TestCase
     {
         // GIVEN ?array $tags carries a value (no declared default)
         $mapper = MapperBuilder::create()->build();
-        $value = new \JsonMine\Tests\Fixture\NullableTags(['a']);
+        $value = new \Ingot\Tests\Fixture\NullableTags(['a']);
 
         // WHEN
         $normalized = $mapper->normalize($value);
@@ -233,7 +233,7 @@ final class NormalizerTest extends TestCase
     {
         // GIVEN #[Extras] is the first constructor parameter
         $mapper = MapperBuilder::create()->build();
-        $value = new \JsonMine\Tests\Fixture\WithExtrasFirst(['vendor_x' => 1], 'w1');
+        $value = new \Ingot\Tests\Fixture\WithExtrasFirst(['vendor_x' => 1], 'w1');
 
         // WHEN
         $normalized = $mapper->normalize($value);
@@ -248,7 +248,7 @@ final class NormalizerTest extends TestCase
         $mapper = MapperBuilder::create()->build();
 
         // WHEN
-        $normalized = $mapper->normalize(new \JsonMine\Tests\Fixture\NoConstructor());
+        $normalized = $mapper->normalize(new \Ingot\Tests\Fixture\NoConstructor());
 
         // THEN {} rather than []
         self::assertSame('{}', json_encode($normalized, \JSON_THROW_ON_ERROR));
@@ -273,7 +273,7 @@ final class NormalizerTest extends TestCase
     {
         // GIVEN an object graph with a cycle
         $mapper = MapperBuilder::create()->build();
-        $holder = new \JsonMine\Tests\Fixture\UntypedExtras(['self' => null]);
+        $holder = new \Ingot\Tests\Fixture\UntypedExtras(['self' => null]);
         $holder->bag = ['self' => $holder];
 
         // THEN

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Error;
+namespace Ingot\Error;
 
-use JsonMine\JsonPointer;
+use Ingot\JsonPointer;
 
 /**
  * A single problem found while processing a document.

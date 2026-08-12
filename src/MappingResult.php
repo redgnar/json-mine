@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine;
+namespace Ingot;
 
-use JsonMine\Error\ErrorReport;
-use JsonMine\Error\MappingFailed;
+use Ingot\Error\ErrorReport;
+use Ingot\Error\MappingFailed;
 
 /**
  * Outcome of the non-throwing mapping API ({@see TreeMapper::tryMap()}).

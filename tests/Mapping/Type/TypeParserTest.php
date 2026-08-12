@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Mapping\Type;
+namespace Ingot\Tests\Mapping\Type;
 
-use JsonMine\Mapping\Type\ClassType;
-use JsonMine\Mapping\Type\DateTimeType;
-use JsonMine\Mapping\Type\EnumType;
-use JsonMine\Mapping\Type\ListType;
-use JsonMine\Mapping\Type\MapType;
-use JsonMine\Mapping\Type\MixedType;
-use JsonMine\Mapping\Type\NullableType;
-use JsonMine\Mapping\Type\ScalarKind;
-use JsonMine\Mapping\Type\ScalarType;
-use JsonMine\Mapping\Type\TypeParser;
-use JsonMine\Tests\Fixture\Address;
-use JsonMine\Tests\Fixture\Color;
-use JsonMine\Tests\Fixture\Weekday;
+use Ingot\Mapping\Type\ClassType;
+use Ingot\Mapping\Type\DateTimeType;
+use Ingot\Mapping\Type\EnumType;
+use Ingot\Mapping\Type\ListType;
+use Ingot\Mapping\Type\MapType;
+use Ingot\Mapping\Type\MixedType;
+use Ingot\Mapping\Type\NullableType;
+use Ingot\Mapping\Type\ScalarKind;
+use Ingot\Mapping\Type\ScalarType;
+use Ingot\Mapping\Type\TypeParser;
+use Ingot\Tests\Fixture\Address;
+use Ingot\Tests\Fixture\Color;
+use Ingot\Tests\Fixture\Weekday;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -190,11 +190,11 @@ final class TypeParserTest extends TestCase
     public function testResolvesBareInterfaceNameAgainstTheProvidedNamespace(): void
     {
         // GIVEN / WHEN
-        $node = new TypeParser()->parse('SchemaVault', 'JsonMine\Schema');
+        $node = new TypeParser()->parse('SchemaVault', 'Ingot\Schema');
 
         // THEN
         self::assertInstanceOf(ClassType::class, $node);
-        self::assertSame(\JsonMine\Schema\SchemaVault::class, $node->class);
+        self::assertSame(\Ingot\Schema\SchemaVault::class, $node->class);
     }
 
     public function testRejectsUnknownTypeEvenWithANamespaceProvided(): void
@@ -207,7 +207,7 @@ final class TypeParserTest extends TestCase
         $this->expectExceptionMessage('unknown type or class');
 
         // WHEN
-        $parser->parse('NoSuchClazz', 'JsonMine\Tests\Fixture');
+        $parser->parse('NoSuchClazz', 'Ingot\Tests\Fixture');
     }
 
     public function testBareArrayIsAMapOfMixed(): void
@@ -277,7 +277,7 @@ final class TypeParserTest extends TestCase
         $parser = new TypeParser();
 
         // WHEN
-        $node = $parser->parse('list<Address>', 'JsonMine\Tests\Fixture');
+        $node = $parser->parse('list<Address>', 'Ingot\Tests\Fixture');
 
         // THEN
         self::assertInstanceOf(ListType::class, $node);
@@ -383,7 +383,7 @@ final class TypeParserTest extends TestCase
     public function testResolvesBareEnumNameAgainstTheProvidedNamespace(): void
     {
         // GIVEN / WHEN
-        $node = new TypeParser()->parse('Color', 'JsonMine\Tests\Fixture');
+        $node = new TypeParser()->parse('Color', 'Ingot\Tests\Fixture');
 
         // THEN
         self::assertInstanceOf(EnumType::class, $node);

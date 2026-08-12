@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Schema;
+namespace Ingot\Schema;
 
-use JsonMine\Error\ErrorReport;
-use JsonMine\Error\MappingError;
-use JsonMine\JsonPointer;
+use Ingot\Error\ErrorReport;
+use Ingot\Error\MappingError;
+use Ingot\JsonPointer;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Validator;

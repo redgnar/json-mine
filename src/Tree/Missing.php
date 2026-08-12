@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tree;
+namespace Ingot\Tree;
 
 /**
  * Internal sentinel: a pointer did not resolve. Distinguishes "no value" from

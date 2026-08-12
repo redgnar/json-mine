@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping\Metadata;
+namespace Ingot\Mapping\Metadata;
 
-use JsonMine\Attribute\Discriminator;
-use JsonMine\Attribute\Extras;
-use JsonMine\Attribute\Name;
-use JsonMine\Mapping\Type\MapType;
-use JsonMine\Mapping\Type\MixedType;
-use JsonMine\Mapping\Type\NullableType;
-use JsonMine\Mapping\Type\TypeNode;
-use JsonMine\Mapping\Type\TypeParser;
+use Ingot\Attribute\Discriminator;
+use Ingot\Attribute\Extras;
+use Ingot\Attribute\Name;
+use Ingot\Mapping\Type\MapType;
+use Ingot\Mapping\Type\MixedType;
+use Ingot\Mapping\Type\NullableType;
+use Ingot\Mapping\Type\TypeNode;
+use Ingot\Mapping\Type\TypeParser;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
@@ -76,7 +76,7 @@ final class MetadataFactory
     private function cacheKey(string $class): string
     {
         // Class names contain backslashes (reserved in PSR-6 keys) — hash them.
-        return \sprintf('jsonmine.metadata.%s', hash('xxh128', $class));
+        return \sprintf('ingot.metadata.%s', hash('xxh128', $class));
     }
 
     /**

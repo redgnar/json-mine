@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping\Metadata;
+namespace Ingot\Mapping\Metadata;
 
-use JsonMine\Mapping\Type\TypeNode;
+use Ingot\Mapping\Type\TypeNode;
 
 /**
  * How one non-constructor property maps from JSON.

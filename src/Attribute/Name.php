@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Attribute;
+namespace Ingot\Attribute;
 
 /**
  * Maps a constructor parameter or a property to a JSON key with a different name.

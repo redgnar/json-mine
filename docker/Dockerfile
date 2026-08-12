@@ -1,4 +1,4 @@
-# Development / test image for json-mine.
+# Development / test image for ingot.
 # All quality gates (composer, phpunit, phpstan, php-cs-fixer) run inside this image — see Makefile.
 FROM php:8.4-cli-alpine
 

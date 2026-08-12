@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine;
+namespace Ingot;
 
-use JsonMine\Schema\Schema;
+use Ingot\Schema\Schema;
 
 /**
  * Input for a mapping operation.

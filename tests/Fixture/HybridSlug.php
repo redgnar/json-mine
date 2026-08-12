@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
 /**
  * Hybrid hydration: the constructor covers $id, while $slug (readonly, not a

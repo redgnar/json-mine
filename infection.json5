@@ -12,10 +12,10 @@
         "@default": true,
         // The default error limit is an arbitrary safety cap — 99 vs 101 is behaviorally meaningless.
         "IncrementInteger": {
-            "ignore": ["JsonMine\\Schema\\OpisSchemaValidator::__construct"]
+            "ignore": ["Ingot\\Schema\\OpisSchemaValidator::__construct"]
         },
         "DecrementInteger": {
-            "ignore": ["JsonMine\\Schema\\OpisSchemaValidator::__construct"]
+            "ignore": ["Ingot\\Schema\\OpisSchemaValidator::__construct"]
         }
     },
     "minMsi": 90,

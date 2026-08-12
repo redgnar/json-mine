@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Schema\Schema;
-use JsonMine\Schema\SchemaVault;
+use Ingot\Schema\Schema;
+use Ingot\Schema\SchemaVault;
 
 /**
  * Spy vault recording which classes the mapper asks about.

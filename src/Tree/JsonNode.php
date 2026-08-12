@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tree;
+namespace Ingot\Tree;
 
-use JsonMine\Error\ErrorReport;
-use JsonMine\Error\MappingError;
-use JsonMine\Error\MappingFailed;
-use JsonMine\JsonPointer;
-use JsonMine\Source;
+use Ingot\Error\ErrorReport;
+use Ingot\Error\MappingError;
+use Ingot\Error\MappingFailed;
+use Ingot\JsonPointer;
+use Ingot\Source;
 
 /**
  * Typed access to a decoded JSON document without mapping classes — for

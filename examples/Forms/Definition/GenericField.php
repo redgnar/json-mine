@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Examples\Forms\Definition;
+namespace Ingot\Examples\Forms\Definition;
 
-use JsonMine\Attribute\Extras;
+use Ingot\Attribute\Extras;
 
 /**
  * Fallback for field types this application does not know (plugin fields):

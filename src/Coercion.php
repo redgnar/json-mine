@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine;
+namespace Ingot;
 
 /**
  * Type coercion mode for mapping.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Attribute;
+namespace Ingot\Attribute;
 
 /**
  * Marks one array parameter (or property) as the bag for JSON keys not mapped

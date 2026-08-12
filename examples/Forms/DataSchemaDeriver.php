@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Examples\Forms;
+namespace Ingot\Examples\Forms;
 
-use JsonMine\Examples\Forms\Definition\Field;
-use JsonMine\Examples\Forms\Definition\FormDefinition;
-use JsonMine\Examples\Forms\Definition\NumberField;
-use JsonMine\Examples\Forms\Definition\SelectField;
-use JsonMine\Examples\Forms\Definition\TextField;
-use JsonMine\Schema\Schema;
+use Ingot\Examples\Forms\Definition\Field;
+use Ingot\Examples\Forms\Definition\FormDefinition;
+use Ingot\Examples\Forms\Definition\NumberField;
+use Ingot\Examples\Forms\Definition\SelectField;
+use Ingot\Examples\Forms\Definition\TextField;
+use Ingot\Schema\Schema;
 
 /**
  * Derives the JSON Schema of a form's *values* from its definition — the

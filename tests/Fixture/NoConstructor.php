@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
 final readonly class NoConstructor {}

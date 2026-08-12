@@ -12,9 +12,9 @@ Date: 2026-08-08. Based on decisions in [00-mvp-analysis.md](00-mvp-analysis.md)
 ## Entry point
 
 ```php
-use JsonMine\MapperBuilder;
-use JsonMine\Source;
-use JsonMine\Coercion;
+use Ingot\MapperBuilder;
+use Ingot\Source;
+use Ingot\Coercion;
 
 $mapper = MapperBuilder::create()
     // Schema backend (delegation; swappable for native JsonSchema in PHP 8.6+)
@@ -23,7 +23,7 @@ $mapper = MapperBuilder::create()
     ->withSchema(Workflow::class, Schema::fromFile(__DIR__.'/schemas/workflow-1.0.json'))
     ->withSchema(FormDefinition::class, 'https://example.com/schemas/form-definition.json')
     // Metadata + compiled-schema cache — any PSR-6 pool (e.g. symfony/cache)
-    ->withCache(new FilesystemAdapter(namespace: 'json-mine', directory: $dir))
+    ->withCache(new FilesystemAdapter(namespace: 'ingot', directory: $dir))
     // Coercion mode — Strict is the DEFAULT (decided: keep things as strict as possible);
     // Lax is opt-in (documented coercion table: "123" → 123, string → DateTimeImmutable, …)
     ->withCoercion(Coercion::Strict)
@@ -115,7 +115,7 @@ Why `Source` exists at all:
 ## Target classes: plain readonly PHP + attributes
 
 ```php
-use JsonMine\Attribute\{Discriminator, Name, Format, Extras};
+use Ingot\Attribute\{Discriminator, Name, Format, Extras};
 
 #[Discriminator('type')]                    // abstract/interface roots declare the discriminator field
 abstract readonly class Field
@@ -231,7 +231,7 @@ $node->get('/fields')->list();
 
 ## Naming/API decisions (resolved 2026-08-08)
 
-1. **Name**: stays `json-mine` for now; may be renamed once the project takes shape.
+1. **Name**: stays `ingot` for now; may be renamed once the project takes shape.
 2. **`map()/tryMap()`** — chosen over `parse()/tryParse()`: parsing is only the first step, the result is a mapped object.
 3. **`Source::json()` owns JSON parsing** — yes (byte-offset error info now, single-pass engine later).
 4. **Cache: PSR-6** (`psr/cache` interfaces) — no own cache implementation; the user will plug in `symfony/cache` as the pool. The library only *consumes* a `CacheItemPoolInterface` and ships at most a trivial in-memory/null pool for tests. Keep the simple approach: cache usage itself stays minimal in the MVP (reflection metadata + compiled schemas).

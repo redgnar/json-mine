@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Examples\Forms\Definition;
+namespace Ingot\Examples\Forms\Definition;
 
 final readonly class TextField extends Field
 {

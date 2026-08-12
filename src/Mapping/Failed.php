@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping;
+namespace Ingot\Mapping;
 
 /**
  * Internal sentinel: a subtree could not be hydrated. The errors explaining

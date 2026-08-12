@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Attribute\Format;
-use JsonMine\Attribute\Name;
+use Ingot\Attribute\Format;
+use Ingot\Attribute\Name;
 
 final readonly class Event
 {

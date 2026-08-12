@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Error;
+namespace Ingot\Error;
 
 /**
  * Thrown by the throwing mapping API when a document cannot be mapped.

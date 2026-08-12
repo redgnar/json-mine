@@ -1,4 +1,4 @@
-# json-mine — agent guide
+# ingot — agent guide
 
 A PHP library for typed handling of JSON definitions: read JSON → validate against JSON Schema (delegated) → get a typed tree of PHP objects. Design docs live in `.claude/plan/` — read `00-mvp-analysis.md` (decisions in §7) and `04-core-api-sketch.md` before touching the core API.
 

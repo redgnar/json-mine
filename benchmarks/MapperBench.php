@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Benchmarks;
+namespace Ingot\Benchmarks;
 
-use JsonMine\MapperBuilder;
-use JsonMine\Schema\Schema;
-use JsonMine\Source;
-use JsonMine\Tests\Fixture\FormDefinition;
-use JsonMine\TreeMapper;
+use Ingot\MapperBuilder;
+use Ingot\Schema\Schema;
+use Ingot\Source;
+use Ingot\Tests\Fixture\FormDefinition;
+use Ingot\TreeMapper;
 use PhpBench\Attributes\BeforeMethods;
 use PhpBench\Attributes\Iterations;
 use PhpBench\Attributes\Revs;

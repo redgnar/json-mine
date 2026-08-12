@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping\Type;
+namespace Ingot\Mapping\Type;
 
 /**
  * A JSON array mapped to a PHP list (sequential integer keys).

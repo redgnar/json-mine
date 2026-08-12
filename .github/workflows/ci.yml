@@ -34,7 +34,7 @@ jobs:
           PHP_CS_FIXER_IGNORE_ENV: '1'
 
       - name: Static analysis (PHPStan)
-        run: vendor/bin/phpstan analyse --no-progress
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
 
       - name: Module boundaries (Deptrac)
         run: vendor/bin/deptrac analyse --no-progress --cache-file=.cache/deptrac.cache

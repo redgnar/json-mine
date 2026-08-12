@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests;
+namespace Ingot\Tests;
 
-use JsonMine\JsonPointer;
+use Ingot\JsonPointer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests;
+namespace Ingot\Tests;
 
-use JsonMine\Error\ErrorReport;
-use JsonMine\Error\MappingError;
-use JsonMine\Error\MappingFailed;
-use JsonMine\JsonPointer;
-use JsonMine\MappingFailure;
-use JsonMine\MappingResult;
+use Ingot\Error\ErrorReport;
+use Ingot\Error\MappingError;
+use Ingot\Error\MappingFailed;
+use Ingot\JsonPointer;
+use Ingot\MappingFailure;
+use Ingot\MappingResult;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

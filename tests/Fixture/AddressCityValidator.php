@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Validation\ObjectValidator;
-use JsonMine\Validation\ValidationContext;
+use Ingot\Validation\ObjectValidator;
+use Ingot\Validation\ValidationContext;
 
 /**
  * Node-level validator: runs for every hydrated Address anywhere in the

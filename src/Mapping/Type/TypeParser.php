@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Mapping\Type;
+namespace Ingot\Mapping\Type;
 
 /**
  * Parses type strings (native type names, PHPDoc generics) into a TypeNode tree.

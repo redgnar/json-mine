@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine;
+namespace Ingot;
 
-use JsonMine\Error\MappingFailed;
+use Ingot\Error\MappingFailed;
 
 /**
  * Maps a decoded JSON document onto a typed PHP structure in one pass:

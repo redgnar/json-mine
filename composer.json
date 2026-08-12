@@ -1,5 +1,5 @@
 {
-    "name": "json-mine/json-mine",
+    "name": "ingot/ingot",
     "description": "Typed handling of JSON definitions: read, validate against JSON Schema, map to a typed PHP object tree",
     "type": "library",
     "license": "MIT",
@@ -22,14 +22,14 @@
     },
     "autoload": {
         "psr-4": {
-            "JsonMine\\": "src/"
+            "Ingot\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "JsonMine\\Benchmarks\\": "benchmarks/",
-            "JsonMine\\Examples\\": "examples/",
-            "JsonMine\\Tests\\": "tests/"
+            "Ingot\\Benchmarks\\": "benchmarks/",
+            "Ingot\\Examples\\": "examples/",
+            "Ingot\\Tests\\": "tests/"
         }
     },
     "config": {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Fixture;
+namespace Ingot\Tests\Fixture;
 
-use JsonMine\Attribute\Discriminator;
+use Ingot\Attribute\Discriminator;
 
 /**
  * A union root with an empty closed map — variants come from plugins only.

@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Tests\Mapping;
+namespace Ingot\Tests\Mapping;
 
-use JsonMine\Coercion;
-use JsonMine\Error\MappingFailed;
-use JsonMine\MapperBuilder;
-use JsonMine\Schema\Schema;
-use JsonMine\Source;
-use JsonMine\Tests\Fixture\Address;
-use JsonMine\Tests\Fixture\AddressCityValidator;
-use JsonMine\Tests\Fixture\Amount;
-use JsonMine\Tests\Fixture\Color;
-use JsonMine\Tests\Fixture\CustomField;
-use JsonMine\Tests\Fixture\Event;
-use JsonMine\Tests\Fixture\Field;
-use JsonMine\Tests\Fixture\FormDefinition;
-use JsonMine\Tests\Fixture\GenericField;
-use JsonMine\Tests\Fixture\Person;
-use JsonMine\Tests\Fixture\SelectField;
-use JsonMine\Tests\Fixture\TextField;
-use JsonMine\Tests\Fixture\UniqueFieldNamesValidator;
+use Ingot\Coercion;
+use Ingot\Error\MappingFailed;
+use Ingot\MapperBuilder;
+use Ingot\Schema\Schema;
+use Ingot\Source;
+use Ingot\Tests\Fixture\Address;
+use Ingot\Tests\Fixture\AddressCityValidator;
+use Ingot\Tests\Fixture\Amount;
+use Ingot\Tests\Fixture\Color;
+use Ingot\Tests\Fixture\CustomField;
+use Ingot\Tests\Fixture\Event;
+use Ingot\Tests\Fixture\Field;
+use Ingot\Tests\Fixture\FormDefinition;
+use Ingot\Tests\Fixture\GenericField;
+use Ingot\Tests\Fixture\Person;
+use Ingot\Tests\Fixture\SelectField;
+use Ingot\Tests\Fixture\TextField;
+use Ingot\Tests\Fixture\UniqueFieldNamesValidator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -492,7 +492,7 @@ final class MapperTest extends TestCase
     public function testSchemaVaultIsNotConsultedForTypeStringTargets(): void
     {
         // GIVEN a spy vault
-        $vault = new \JsonMine\Tests\Fixture\RecordingSchemaVault();
+        $vault = new \Ingot\Tests\Fixture\RecordingSchemaVault();
         $mapper = MapperBuilder::create()->withSchemaVault($vault)->build();
 
         // WHEN

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Schema;
+namespace Ingot\Schema;
 
-use JsonMine\Error\ErrorReport;
+use Ingot\Error\ErrorReport;
 
 /**
  * Validates a decoded document against a JSON Schema.

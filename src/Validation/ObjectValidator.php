@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Validation;
+namespace Ingot\Validation;
 
 /**
  * Validates a hydrated object beyond schema and type checks.

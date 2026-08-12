@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonMine\Attribute;
+namespace Ingot\Attribute;
 
 /**
  * Declares the JSON field that selects the concrete variant of a
