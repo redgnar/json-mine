@@ -28,6 +28,7 @@
     "autoload-dev": {
         "psr-4": {
             "JsonMine\\Benchmarks\\": "benchmarks/",
+            "JsonMine\\Examples\\": "examples/",
             "JsonMine\\Tests\\": "tests/"
         }
     },

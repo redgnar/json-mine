@@ -1,0 +1,25 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Form definition",
+    "type": "object",
+    "required": ["id", "title", "fields"],
+    "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "title": {"type": "string"},
+        "fields": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["type", "name"],
+                "properties": {
+                    "type": {"type": "string", "minLength": 1},
+                    "name": {"type": "string", "minLength": 1},
+                    "label": {"type": "string"},
+                    "required": {"type": "boolean"}
+                },
+                "additionalProperties": true
+            }
+        }
+    },
+    "additionalProperties": false
+}

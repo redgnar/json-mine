@@ -1,0 +1,10 @@
+{
+    "id": "contact",
+    "title": "Contact form",
+    "fields": [
+        {"type": "text", "name": "email", "label": "E-mail", "required": true, "maxLength": 120},
+        {"type": "select", "name": "country", "label": "Country", "required": true, "options": ["pl", "de", "fr"]},
+        {"type": "number", "name": "age", "label": "Age", "min": 18, "max": 120},
+        {"type": "signature", "name": "sig", "vendor": {"widget": "draw-pad"}}
+    ]
+}

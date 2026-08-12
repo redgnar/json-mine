@@ -159,6 +159,16 @@ if ($report->isEmpty()) {
 - **PSR-6 caching** — `withCache($pool)` shares mapper metadata across requests
   (bring your own pool, e.g. symfony/cache).
 
+## Complete example
+
+[`examples/Forms`](examples/Forms) runs the whole pipeline end to end: a form
+definition validated by a meta-schema and a semantic rule, hydrated into a
+discriminated union (with a fallback preserving unknown plugin fields), a
+**data schema derived from the definition** (shippable to the frontend),
+submission validation, typed value access via `JsonNode`, and a lossless
+save. [`tests/Examples/FormsExampleTest.php`](tests/Examples/FormsExampleTest.php)
+keeps it working.
+
 ## Attributes
 
 | Attribute | Placement | Meaning |
