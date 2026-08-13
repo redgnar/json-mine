@@ -253,7 +253,7 @@ final class ScalarAndEdgeCaseTest extends TestCase
         $mapper = MapperBuilder::create()->build();
 
         // WHEN
-        $result = $mapper->tryMap(Event::class, Source::json('{"title": "x", "created_at": "2026-01-01", "color": "green"}'));
+        $result = $mapper->tryMap(Event::class, Source::json('{"title": "x", "created_at": "2026-01-01T00:00:00Z", "color": "green"}'));
 
         // THEN the whole message (including the allowed-values list) is stable
         self::assertSame("Not a valid value — allowed: 'red', 'blue'.", $result->errors()->errors[0]->message);

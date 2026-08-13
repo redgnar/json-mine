@@ -5,6 +5,7 @@
     "license": "MIT",
     "require": {
         "php": ">=8.4",
+        "ext-filter": "*",
         "opis/json-schema": "^2.6",
         "psr/cache": "^3.0"
     },

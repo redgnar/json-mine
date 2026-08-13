@@ -153,6 +153,11 @@ if ($report->isEmpty()) {
 - **Rich types** — nested objects, `list<T>` / `array<K, V>` via PHPDoc, backed
   enums, `DateTimeImmutable`, nullable vs optional (both semantics honored),
   strict by default with an opt-in lax coercion table.
+- **Validated formats** — `#[Format('uuid')]` (also `uri`, `email`, `date`,
+  `date-time`) rejects non-matching strings with a `mapping.format` error;
+  on `DateTimeImmutable` members it replaces PHP's lenient date parsing with
+  strict RFC 3339 / full-date syntax, and the format flows into generated
+  schemas and `normalize()` output.
 - **Discriminated unions** — closed maps declared on the union root
   (`#[Discriminator('type', map: [...])]`), open plugin-registered variants
   (`withVariant()`), and a fallback for unknown variants (`withVariantFallback()`)
@@ -189,7 +194,7 @@ keeps it working.
 | `#[Discriminator('type', map: [...])]` | union root | discriminator field + closed variant map |
 | `#[Name('json_key')]` | parameter / property | JSON key differs from the member name |
 | `#[Extras]` | one array member | bag for unknown keys (round-trip) |
-| `#[Format('date-time')]` | parameter / property | reserved for string-conversion hints |
+| `#[Format('date-time')]` | parameter / property | validated syntax for string and date members: `date-time`, `date`, `uuid`, `uri`, `email` |
 
 ## Development
 

@@ -67,17 +67,18 @@ final class Hydrator
         return match (true) {
             $type instanceof MixedType => $value,
             $type instanceof NullableType => $value === null ? null : $this->value($type->inner, $value, $path),
-            $type instanceof ScalarType => $this->scalar($type->kind, $value, $path),
+            $type instanceof ScalarType => $this->scalar($type, $value, $path),
             $type instanceof EnumType => $this->enum($type, $value, $path),
-            $type instanceof DateTimeType => $this->dateTime($value, $path),
+            $type instanceof DateTimeType => $this->dateTime($type, $value, $path),
             $type instanceof ListType => $this->list($type, $value, $path),
             $type instanceof MapType => $this->map($type, $value, $path),
             $type instanceof ClassType => $this->object($type->class, $value, $path),
         };
     }
 
-    private function scalar(ScalarKind $kind, mixed $value, JsonPointer $path): mixed
+    private function scalar(ScalarType $type, mixed $value, JsonPointer $path): mixed
     {
+        $kind = $type->kind;
         $matched = match ($kind) {
             ScalarKind::Integer => \is_int($value),
             ScalarKind::Float => \is_float($value) || \is_int($value),
@@ -85,19 +86,27 @@ final class Hydrator
             ScalarKind::Boolean => \is_bool($value),
         };
 
-        if ($matched) {
-            return \is_int($value) && $kind === ScalarKind::Float ? (float) $value : $value;
-        }
-
-        if ($this->coercion === Coercion::Lax) {
+        if (!$matched && $this->coercion === Coercion::Lax) {
             $coerced = $this->coerce($kind, $value);
 
             if ($coerced !== Failed::Value) {
-                return $coerced;
+                $value = $coerced;
+                $matched = true;
             }
         }
 
-        return $this->fail($path, 'mapping.type', \sprintf('Expected %s, got %s.', $kind->label(), get_debug_type($value)), $value);
+        if (!$matched) {
+            return $this->fail($path, 'mapping.type', \sprintf('Expected %s, got %s.', $kind->label(), get_debug_type($value)), $value);
+        }
+
+        if ($type->format !== null) {
+            /** @var string $value formats attach to string members only, so a matched value is a string */
+            if (!$type->format->matches($value)) {
+                return $this->fail($path, 'mapping.format', \sprintf('"%s" is not a valid %s.', $value, $type->format->value), $value);
+            }
+        }
+
+        return \is_int($value) && $kind === ScalarKind::Float ? (float) $value : $value;
     }
 
     /**
@@ -156,10 +165,16 @@ final class Hydrator
         return $this->fail($path, 'mapping.enum', \sprintf('Not a valid value — allowed: %s.', $allowed), $value);
     }
 
-    private function dateTime(mixed $value, JsonPointer $path): mixed
+    private function dateTime(DateTimeType $type, mixed $value, JsonPointer $path): mixed
     {
         if (!\is_string($value)) {
             return $this->fail($path, 'mapping.type', \sprintf('Expected a date-time string, got %s.', get_debug_type($value)), $value);
+        }
+
+        // Without #[Format] any PHP-parsable string is accepted; a declared
+        // format restricts the syntax (RFC 3339 date-time, or full-date).
+        if ($type->format !== null && !$type->format->matches($value)) {
+            return $this->fail($path, 'mapping.format', \sprintf('"%s" is not a valid %s.', $value, $type->format->value), $value);
         }
 
         try {

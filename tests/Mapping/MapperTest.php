@@ -74,7 +74,7 @@ final class MapperTest extends TestCase
         $mapper = MapperBuilder::create()->build();
 
         // WHEN
-        $event = $mapper->map(Event::class, Source::json('{"title": "Release", "created_at": "2026-08-08"}'));
+        $event = $mapper->map(Event::class, Source::json('{"title": "Release", "created_at": "2026-08-08T00:00:00Z"}'));
 
         // THEN
         self::assertSame(Color::Red, $event->color);
@@ -176,7 +176,7 @@ final class MapperTest extends TestCase
         $mapper = MapperBuilder::create()->build();
 
         // WHEN
-        $result = $mapper->tryMap(Event::class, Source::json('{"title": "x", "created_at": "2026-01-01", "color": "green"}'));
+        $result = $mapper->tryMap(Event::class, Source::json('{"title": "x", "created_at": "2026-01-01T00:00:00Z", "color": "green"}'));
 
         // THEN
         $error = $result->errors()->errors[0];

@@ -8,6 +8,7 @@ use Ingot\Mapping\Metadata\MetadataFactory;
 use Ingot\Mapping\Type\ClassType;
 use Ingot\Mapping\Type\DateTimeType;
 use Ingot\Mapping\Type\EnumType;
+use Ingot\Mapping\Type\FormatKind;
 use Ingot\Mapping\Type\ListType;
 use Ingot\Mapping\Type\MapType;
 use Ingot\Mapping\Type\MixedType;
@@ -69,20 +70,34 @@ final class SchemaGenerator
         // @phpstan-ignore match.unhandled (exhaustive over shipped TypeNode implementations)
         return match (true) {
             $type instanceof MixedType => [],
-            $type instanceof ScalarType => ['type' => match ($type->kind) {
-                ScalarKind::Integer => 'integer',
-                ScalarKind::Float => 'number',
-                ScalarKind::String => 'string',
-                ScalarKind::Boolean => 'boolean',
-            }],
+            $type instanceof ScalarType => $this->scalar($type),
             $type instanceof NullableType => ['anyOf' => [$this->embed($this->node($type->inner, $defs)), ['type' => 'null']]],
             // Backed enums are JsonSerializable — cases encode to their values.
             $type instanceof EnumType => ['enum' => $type->enum::cases()],
-            $type instanceof DateTimeType => ['type' => 'string', 'format' => 'date-time'],
+            $type instanceof DateTimeType => ['type' => 'string', 'format' => ($type->format ?? FormatKind::DateTime)->value],
             $type instanceof ListType => ['type' => 'array', 'items' => $this->embed($this->node($type->item, $defs))],
             $type instanceof MapType => ['type' => 'object', 'additionalProperties' => $this->embed($this->node($type->value, $defs))],
             $type instanceof ClassType => $this->reference($type->class, $defs),
         };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function scalar(ScalarType $type): array
+    {
+        $node = ['type' => match ($type->kind) {
+            ScalarKind::Integer => 'integer',
+            ScalarKind::Float => 'number',
+            ScalarKind::String => 'string',
+            ScalarKind::Boolean => 'boolean',
+        }];
+
+        if ($type->format !== null) {
+            $node['format'] = $type->format->value;
+        }
+
+        return $node;
     }
 
     /**

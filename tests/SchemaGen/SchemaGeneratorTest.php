@@ -13,11 +13,13 @@ use Ingot\Schema\Schema;
 use Ingot\SchemaGen\SchemaGenerator;
 use Ingot\Source;
 use Ingot\Tests\Fixture\Color;
+use Ingot\Tests\Fixture\Contact;
 use Ingot\Tests\Fixture\CustomField;
 use Ingot\Tests\Fixture\Field;
 use Ingot\Tests\Fixture\FormDefinition;
 use Ingot\Tests\Fixture\Person;
 use Ingot\Tests\Fixture\PropsWithExtras;
+use Ingot\Tests\Fixture\Reservation;
 use Ingot\Tests\Fixture\TreeNode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -119,6 +121,27 @@ final class SchemaGeneratorTest extends TestCase
         // THEN
         self::assertSame('string', $document['type'] ?? null);
         self::assertSame('date-time', $document['format'] ?? null);
+    }
+
+    public function testFormatAttributeIsCopiedIntoTheSchema(): void
+    {
+        // GIVEN #[Format] on Contact's string members and Reservation's date members
+        $generator = new SchemaGenerator();
+
+        // WHEN
+        $contact = $this->def($this->doc($generator->generate(Contact::class)), 'Ingot.Tests.Fixture.Contact');
+        $reservation = $this->def($this->doc($generator->generate(Reservation::class)), 'Ingot.Tests.Fixture.Reservation');
+
+        // THEN string members carry their format...
+        $properties = self::arr($contact['properties']);
+        self::assertSame(['type' => 'string', 'format' => 'uuid'], $properties['id']);
+        self::assertSame(
+            ['anyOf' => [['type' => 'string', 'format' => 'email'], ['type' => 'null']]],
+            $properties['email'],
+        );
+
+        // ...and a date-formatted \DateTimeImmutable emits 'date', not 'date-time'
+        self::assertSame(['type' => 'string', 'format' => 'date'], self::arr($reservation['properties'])['day']);
     }
 
     public function testClassBecomesARefWithADefinition(): void

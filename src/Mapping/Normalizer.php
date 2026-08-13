@@ -6,6 +6,8 @@ namespace Ingot\Mapping;
 
 use Ingot\Mapping\Metadata\ClassMetadata;
 use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\DateTimeType;
+use Ingot\Mapping\Type\FormatKind;
 use Ingot\Mapping\Type\NullableType;
 use Ingot\Mapping\Type\TypeNode;
 
@@ -19,7 +21,8 @@ use Ingot\Mapping\Type\TypeNode;
  *   round-trip untouched (raw \stdClass fragments pass through as-is),
  * - discriminated-union variants re-emit their discriminator field, which
  *   hydration consumed when selecting the variant,
- * - backed enums emit their value, \DateTimeInterface emits RFC 3339.
+ * - backed enums emit their value, \DateTimeInterface emits RFC 3339
+ *   (#[Format('date')] members emit the full-date form instead).
  *
  * @internal
  */
@@ -109,7 +112,7 @@ final class Normalizer
                 continue;
             }
 
-            $result[$parameter->jsonKey] = $this->convert($memberValue, $path);
+            $result[$parameter->jsonKey] = $this->member($memberValue, $parameter->type, $path);
         }
 
         foreach ($metadata->properties as $member) {
@@ -129,7 +132,7 @@ final class Normalizer
                 continue;
             }
 
-            $result[$member->jsonKey] = $this->convert($memberValue, $path);
+            $result[$member->jsonKey] = $this->member($memberValue, $member->type, $path);
         }
 
         foreach ($this->extras($metadata, $reflection, $value) as $key => $extra) {
@@ -139,6 +142,25 @@ final class Normalizer
         $path->detach($value); // sharing an object between branches is legal, only true cycles are not
 
         return $result === [] ? new \stdClass() : $result;
+    }
+
+    /**
+     * Emits a member value, honoring the member's declared #[Format]: a
+     * date-formatted \DateTimeImmutable round-trips as "Y-m-d", not RFC 3339.
+     *
+     * @param \SplObjectStorage<object, null> $path
+     */
+    private function member(mixed $value, TypeNode $type, \SplObjectStorage $path): mixed
+    {
+        if ($type instanceof NullableType) {
+            $type = $type->inner;
+        }
+
+        if ($type instanceof DateTimeType && $type->format === FormatKind::Date && $value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        return $this->convert($value, $path);
     }
 
     /**

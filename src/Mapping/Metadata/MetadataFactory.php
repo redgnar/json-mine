@@ -6,10 +6,15 @@ namespace Ingot\Mapping\Metadata;
 
 use Ingot\Attribute\Discriminator;
 use Ingot\Attribute\Extras;
+use Ingot\Attribute\Format;
 use Ingot\Attribute\Name;
+use Ingot\Mapping\Type\DateTimeType;
+use Ingot\Mapping\Type\FormatKind;
 use Ingot\Mapping\Type\MapType;
 use Ingot\Mapping\Type\MixedType;
 use Ingot\Mapping\Type\NullableType;
+use Ingot\Mapping\Type\ScalarKind;
+use Ingot\Mapping\Type\ScalarType;
 use Ingot\Mapping\Type\TypeNode;
 use Ingot\Mapping\Type\TypeParser;
 use Psr\Cache\CacheItemPoolInterface;
@@ -151,6 +156,7 @@ final class MetadataFactory
     {
         $jsonKey = $property->getName();
         $isExtras = false;
+        $owner = \sprintf('property "%s" of %s', $property->getName(), $class);
 
         foreach ($property->getAttributes(Name::class) as $attribute) {
             $jsonKey = $attribute->newInstance()->key;
@@ -160,12 +166,11 @@ final class MetadataFactory
             $isExtras = true;
         }
 
-        $type = $this->typeOf(
-            $property->getType(),
-            $this->varType($property),
-            $namespace,
-            \sprintf('property "%s" of %s', $property->getName(), $class),
-        );
+        $type = $this->typeOf($property->getType(), $this->varType($property), $namespace, $owner);
+
+        foreach ($property->getAttributes(Format::class) as $attribute) {
+            $type = $this->applyFormat($type, $attribute->newInstance()->format, $owner);
+        }
 
         if ($isExtras && !($type instanceof MapType || $type instanceof MixedType)) {
             throw new \LogicException(\sprintf(
@@ -257,6 +262,7 @@ final class MetadataFactory
 
         $jsonKey = $parameter->getName();
         $isExtras = false;
+        $owner = \sprintf('parameter "%s" of %s', $parameter->getName(), $class);
 
         foreach ($parameter->getAttributes(Name::class) as $attribute) {
             $jsonKey = $attribute->newInstance()->key;
@@ -266,12 +272,11 @@ final class MetadataFactory
             $isExtras = true;
         }
 
-        $type = $this->typeOf(
-            $parameter->getType(),
-            $docblockTypes[$parameter->getName()] ?? null,
-            $namespace,
-            \sprintf('parameter "%s" of %s', $parameter->getName(), $class),
-        );
+        $type = $this->typeOf($parameter->getType(), $docblockTypes[$parameter->getName()] ?? null, $namespace, $owner);
+
+        foreach ($parameter->getAttributes(Format::class) as $attribute) {
+            $type = $this->applyFormat($type, $attribute->newInstance()->format, $owner);
+        }
 
         if ($isExtras && !($type instanceof MapType || $type instanceof MixedType)) {
             throw new \LogicException(\sprintf(
@@ -289,6 +294,45 @@ final class MetadataFactory
             $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
             $isExtras,
         );
+    }
+
+    /**
+     * Attaches a #[Format] to the member's type node, descending through a
+     * nullable wrapper. Formats apply to string and date-time members only,
+     * and only formats the engine can actually validate are accepted.
+     *
+     * @param string $owner member description used in configuration-error messages
+     */
+    private function applyFormat(TypeNode $type, string $format, string $owner): TypeNode
+    {
+        $kind = FormatKind::tryFrom($format);
+
+        if ($kind === null) {
+            throw new \LogicException(\sprintf(
+                'Unknown format "%s" on %s — supported formats: %s.',
+                $format,
+                $owner,
+                implode(', ', array_map(static fn(FormatKind $case): string => $case->value, FormatKind::cases())),
+            ));
+        }
+
+        if ($type instanceof NullableType) {
+            return new NullableType($this->applyFormat($type->inner, $format, $owner));
+        }
+
+        if ($type instanceof DateTimeType && ($kind === FormatKind::DateTime || $kind === FormatKind::Date)) {
+            return new DateTimeType($kind);
+        }
+
+        if ($type instanceof ScalarType && $type->kind === ScalarKind::String) {
+            return new ScalarType(ScalarKind::String, $kind);
+        }
+
+        throw new \LogicException(\sprintf(
+            '#[Format(\'%s\')] does not apply to %s — formats apply to string members, and date-time/date to \DateTimeImmutable members.',
+            $format,
+            $owner,
+        ));
     }
 
     /**

@@ -15,6 +15,7 @@ use Ingot\Tests\Fixture\FormDefinition;
 use Ingot\Tests\Fixture\GenericField;
 use Ingot\Tests\Fixture\Person;
 use Ingot\Tests\Fixture\PropsWithExtras;
+use Ingot\Tests\Fixture\Reservation;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -62,6 +63,32 @@ final class NormalizerTest extends TestCase
             ['title' => 'Release', 'created_at' => '2026-08-08T12:00:00+00:00', 'color' => 'blue'],
             $normalized,
         );
+    }
+
+    public function testDateFormattedMembersEmitFullDates(): void
+    {
+        // GIVEN #[Format('date')] on both Reservation members, one nullable
+        $mapper = MapperBuilder::create()->build();
+        $reservation = new Reservation(new \DateTimeImmutable('2026-08-13'), new \DateTimeImmutable('2026-08-20'));
+
+        // WHEN
+        $normalized = $mapper->normalize($reservation);
+
+        // THEN dates round-trip as full dates, not RFC 3339 timestamps
+        self::assertSame(['day' => '2026-08-13', 'until' => '2026-08-20'], $normalized);
+    }
+
+    public function testDateFormattedDocumentSurvivesARoundTrip(): void
+    {
+        // GIVEN
+        $mapper = MapperBuilder::create()->build();
+        $document = '{"day": "2026-08-13"}';
+
+        // WHEN
+        $normalized = $mapper->normalize($mapper->map(Reservation::class, Source::json($document)));
+
+        // THEN
+        self::assertSame(['day' => '2026-08-13'], $normalized);
     }
 
     public function testOmitsDefaultsAndMissingNullables(): void
