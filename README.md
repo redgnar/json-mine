@@ -177,7 +177,7 @@ if ($report->isEmpty()) {
 - **PSR-6 caching** — `withCache($pool)` shares mapper metadata across requests
   (bring your own pool, e.g. symfony/cache).
 
-## Complete example
+## Complete examples
 
 [`examples/Forms`](examples/Forms) runs the whole pipeline end to end: a form
 definition validated by a meta-schema and a semantic rule, hydrated into a
@@ -185,6 +185,15 @@ discriminated union (with a fallback preserving unknown plugin fields), a
 **data schema derived from the definition** (shippable to the frontend),
 submission validation, typed value access via `JsonNode`, and a lossless
 save. [`tests/Examples/FormsExampleTest.php`](tests/Examples/FormsExampleTest.php)
+keeps it working.
+
+[`examples/Workflow`](examples/Workflow) exercises the graph-shaped side: an
+**open** discriminated union whose node types come from a runtime registry
+(plugin territory), a fallback preserving unknown node types in lenient mode
+vs a strict mode that rejects them, **referential integrity rules** (unique
+node ids, no dangling edges) running on the hydrated document, and a lossless
+round-trip including vendor extension keys.
+[`tests/Examples/WorkflowExampleTest.php`](tests/Examples/WorkflowExampleTest.php)
 keeps it working.
 
 ## Attributes

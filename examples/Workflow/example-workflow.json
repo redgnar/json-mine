@@ -1,0 +1,14 @@
+{
+    "id": "order-flow",
+    "name": "Order processing",
+    "x-vendor": {"color": "#ff6600"},
+    "nodes": [
+        {"type": "http", "id": "fetch", "name": "Fetch order", "url": "https://api.example.com/orders", "method": "POST"},
+        {"type": "delay", "id": "wait", "seconds": 30},
+        {"type": "webhook", "id": "notify", "on": "order.created", "target": "https://hooks.example.com/x1"}
+    ],
+    "edges": [
+        {"from": "fetch", "to": "wait"},
+        {"from": "wait", "to": "notify"}
+    ]
+}
