@@ -20,13 +20,6 @@ absolute JSON Pointer, a machine-readable code, and the offending value.
 composer require ingot/ingot
 ```
 
-No tagged release yet (pre-1.0) — until the first tag, require the development
-branch explicitly:
-
-```
-composer require ingot/ingot:dev-main
-```
-
 ## Quick start
 
 ```php

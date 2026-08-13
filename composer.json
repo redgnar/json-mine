@@ -3,6 +3,14 @@
     "description": "Typed handling of JSON definitions: read, validate against JSON Schema, map to a typed PHP object tree",
     "type": "library",
     "license": "MIT",
+    "keywords": ["json", "json-schema", "mapper", "hydration", "dto", "validation", "denormalization", "schema-generation"],
+    "homepage": "https://github.com/redgnar/ingot",
+    "authors": [
+        {
+            "name": "Piotr Knap",
+            "email": "piotrek.knap@gmail.com"
+        }
+    ],
     "require": {
         "php": ">=8.4",
         "ext-filter": "*",
