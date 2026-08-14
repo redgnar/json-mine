@@ -151,6 +151,12 @@ if ($report->isEmpty()) {
   on `DateTimeImmutable` members it replaces PHP's lenient date parsing with
   strict RFC 3339 / full-date syntax, and the format flows into generated
   schemas and `normalize()` output.
+- **Value constraints** — `#[Constraints(minLength: 3, pattern: '^[A-Z]{3}$', minimum: 0, minItems: 1, ...)]`
+  declares the simple JSON Schema validation keywords (string lengths and
+  patterns, numeric bounds and `multipleOf`, list item counts and uniqueness,
+  map property counts) right on the member; the engine enforces them during
+  hydration (`mapping.min_length`, `mapping.pattern`, …) and `SchemaGenerator`
+  emits them into the generated schema verbatim, so both surfaces always agree.
 - **Discriminated unions** — closed maps declared on the union root
   (`#[Discriminator('type', map: [...])]`), open plugin-registered variants
   (`withVariant()`), and a fallback for unknown variants (`withVariantFallback()`)
@@ -177,7 +183,9 @@ definition validated by a meta-schema and a semantic rule, hydrated into a
 discriminated union (with a fallback preserving unknown plugin fields), a
 **data schema derived from the definition** (shippable to the frontend),
 submission validation, typed value access via `JsonNode`, and a lossless
-save. [`tests/Examples/FormsExampleTest.php`](tests/Examples/FormsExampleTest.php)
+save. The definition model carries `#[Constraints]` (pattern-checked ids,
+non-empty unique select options, positive length limits) enforced at load
+time even without the meta-schema. [`tests/Examples/FormsExampleTest.php`](tests/Examples/FormsExampleTest.php)
 keeps it working.
 
 [`examples/Workflow`](examples/Workflow) exercises the graph-shaped side: an
@@ -185,7 +193,9 @@ keeps it working.
 (plugin territory), a fallback preserving unknown node types in lenient mode
 vs a strict mode that rejects them, **referential integrity rules** (unique
 node ids, no dangling edges) running on the hydrated document, and a lossless
-round-trip including vendor extension keys.
+round-trip including vendor extension keys. Node payloads are
+constraint-validated (`method` against a pattern, delays bounded to 1–86400 s,
+timeouts on a half-second grid, header maps with bounded sizes).
 [`tests/Examples/WorkflowExampleTest.php`](tests/Examples/WorkflowExampleTest.php)
 keeps it working.
 
@@ -197,6 +207,7 @@ keeps it working.
 | `#[Name('json_key')]` | parameter / property | JSON key differs from the member name |
 | `#[Extras]` | one array member | bag for unknown keys (round-trip) |
 | `#[Format('date-time')]` | parameter / property | validated syntax for string and date members: `date-time`, `date`, `uuid`, `uri`, `email` |
+| `#[Constraints(...)]` | parameter / property | simple JSON Schema validation keywords, enforced by the engine and emitted into generated schemas: `minLength`/`maxLength`/`pattern` (strings), `minimum`/`maximum`/`exclusiveMinimum`/`exclusiveMaximum`/`multipleOf` (numbers), `minItems`/`maxItems`/`uniqueItems` (lists), `minProperties`/`maxProperties` (maps) |
 
 ## Development
 

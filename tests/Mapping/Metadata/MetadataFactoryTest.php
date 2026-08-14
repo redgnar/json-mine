@@ -9,6 +9,7 @@ use Ingot\Mapping\Type\TypeParser;
 use Ingot\Tests\Fixture\Address;
 use Ingot\Tests\Fixture\ArrayCachePool;
 use Ingot\Tests\Fixture\BadExtras;
+use Ingot\Tests\Fixture\Money;
 use Ingot\Tests\Fixture\Person;
 use Ingot\Tests\Fixture\UnionNative;
 use Ingot\Tests\Fixture\Variadic;
@@ -111,6 +112,19 @@ final class MetadataFactoryTest extends TestCase
         // THEN the corrupt entry was ignored, metadata rebuilt and re-saved
         self::assertSame(Address::class, $metadata->class);
         self::assertSame(2, $pool->saves);
+    }
+
+    public function testConstraintMetadataSurvivesSerialization(): void
+    {
+        // GIVEN a class with #[Constraints] on scalar members
+        $factory = new MetadataFactory();
+        $metadata = $factory->for(Money::class);
+
+        // WHEN the metadata takes a PSR-6-style serialization round-trip
+        $revived = unserialize(serialize($metadata));
+
+        // THEN nothing is lost — the constraints included
+        self::assertEquals($metadata, $revived);
     }
 
     public function testRejectsVariadicConstructorParameters(): void

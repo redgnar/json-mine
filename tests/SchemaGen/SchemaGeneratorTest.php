@@ -6,6 +6,7 @@ namespace Ingot\Tests\SchemaGen;
 
 use Ingot\MapperBuilder;
 use Ingot\Mapping\Metadata\MetadataFactory;
+use Ingot\Mapping\Type\ConstraintSet;
 use Ingot\Mapping\Type\TypeParser;
 use Ingot\Mapping\VariantRegistry;
 use Ingot\Schema\OpisSchemaValidator;
@@ -17,7 +18,9 @@ use Ingot\Tests\Fixture\Contact;
 use Ingot\Tests\Fixture\CustomField;
 use Ingot\Tests\Fixture\Field;
 use Ingot\Tests\Fixture\FormDefinition;
+use Ingot\Tests\Fixture\Money;
 use Ingot\Tests\Fixture\Person;
+use Ingot\Tests\Fixture\Poll;
 use Ingot\Tests\Fixture\PropsWithExtras;
 use Ingot\Tests\Fixture\Reservation;
 use Ingot\Tests\Fixture\TreeNode;
@@ -25,6 +28,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(SchemaGenerator::class)]
+#[CoversClass(ConstraintSet::class)]
 final class SchemaGeneratorTest extends TestCase
 {
     public function testGeneratesFragmentsForTypeStringTargets(): void
@@ -257,6 +261,72 @@ final class SchemaGeneratorTest extends TestCase
 
         // THEN like a strict engine, the schema rejects unknown variants
         self::assertFalse($report->isEmpty());
+    }
+
+    public function testMembersAfterAnExtrasParameterStillContribute(): void
+    {
+        // GIVEN a class whose #[Extras] bag is the first constructor parameter
+        $document = $this->doc(new SchemaGenerator()->generate(\Ingot\Tests\Fixture\WithExtrasFirst::class));
+
+        // WHEN
+        $def = $this->def($document, 'Ingot.Tests.Fixture.WithExtrasFirst');
+
+        // THEN the extras bag is skipped, not everything after it
+        self::assertSame(['id'], array_keys(self::arr($def['properties'])));
+        self::assertTrue($def['additionalProperties']);
+    }
+
+    public function testEmitsConstraintKeywordsOnScalarNodes(): void
+    {
+        // GIVEN / WHEN
+        $document = $this->doc(new SchemaGenerator()->generate(Money::class));
+
+        // THEN every declared keyword lands on its node, verbatim
+        $properties = self::arr($this->def($document, 'Ingot.Tests.Fixture.Money')['properties'] ?? null);
+        self::assertSame(
+            ['type' => 'string', 'minLength' => 3, 'maxLength' => 3, 'pattern' => '^[A-Z]{3}$'],
+            $properties['currency'],
+        );
+        self::assertSame(
+            ['type' => 'number', 'minimum' => 0, 'maximum' => 1000000, 'multipleOf' => 0.01],
+            $properties['amount'],
+        );
+        self::assertSame(
+            ['type' => 'integer', 'exclusiveMinimum' => 0, 'exclusiveMaximum' => 100, 'multipleOf' => 5],
+            $properties['quantity'],
+        );
+    }
+
+    public function testEmitsConstraintKeywordsOnListAndMapNodes(): void
+    {
+        // GIVEN / WHEN
+        $document = $this->doc(new SchemaGenerator()->generate(Poll::class));
+
+        // THEN
+        $properties = self::arr($this->def($document, 'Ingot.Tests.Fixture.Poll')['properties'] ?? null);
+        self::assertSame(
+            ['type' => 'array', 'items' => ['type' => 'string'], 'minItems' => 2, 'maxItems' => 4, 'uniqueItems' => true],
+            $properties['options'],
+        );
+        self::assertSame(
+            ['type' => 'object', 'additionalProperties' => ['type' => 'integer'], 'minProperties' => 1, 'maxProperties' => 3],
+            $properties['votes'],
+        );
+    }
+
+    public function testConstraintKeywordsRideTheInnerBranchOfANullableMember(): void
+    {
+        // GIVEN Poll::$note is nullable — null must stay schema-valid
+        $document = $this->doc(new SchemaGenerator()->generate(Poll::class));
+
+        // WHEN
+        $note = self::arr(self::arr($this->def($document, 'Ingot.Tests.Fixture.Poll')['properties'] ?? null)['note']);
+
+        // THEN
+        self::assertSame(
+            ['anyOf' => [['type' => 'string', 'minLength' => 1, 'maxLength' => 2], ['type' => 'null']]],
+            $note,
+        );
     }
 
     /**

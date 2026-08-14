@@ -12,7 +12,12 @@ namespace Ingot\Mapping\Type;
  */
 final readonly class MapType implements TypeNode
 {
+    /**
+     * @param ?ConstraintSet $constraints set from #[Constraints] — the
+     *        hydrated map must satisfy its object keywords
+     */
     public function __construct(
         public TypeNode $value,
+        public ?ConstraintSet $constraints = null,
     ) {}
 }

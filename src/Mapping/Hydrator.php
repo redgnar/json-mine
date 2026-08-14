@@ -10,6 +10,7 @@ use Ingot\JsonPointer;
 use Ingot\Mapping\Metadata\ClassMetadata;
 use Ingot\Mapping\Metadata\MetadataFactory;
 use Ingot\Mapping\Type\ClassType;
+use Ingot\Mapping\Type\ConstraintSet;
 use Ingot\Mapping\Type\DateTimeType;
 use Ingot\Mapping\Type\EnumType;
 use Ingot\Mapping\Type\ListType;
@@ -106,7 +107,100 @@ final class Hydrator
             }
         }
 
+        if ($type->constraints !== null) {
+            $errorsBefore = \count($this->errors);
+
+            if ($kind === ScalarKind::String) {
+                /** @var string $value string constraints attach to string members only */
+                $this->checkStringConstraints($type->constraints, $value, $path);
+            } else {
+                /** @var int|float $value numeric constraints attach to int/float members only */
+                $this->checkNumberConstraints($type->constraints, $value, $path);
+            }
+
+            if (\count($this->errors) > $errorsBefore) {
+                return Failed::Value;
+            }
+        }
+
         return \is_int($value) && $kind === ScalarKind::Float ? (float) $value : $value;
+    }
+
+    /**
+     * Records every violated string constraint on the (possibly coerced)
+     * value — all violations of one member land in the report at once.
+     */
+    private function checkStringConstraints(ConstraintSet $constraints, string $value, JsonPointer $path): void
+    {
+        $length = $this->codePointCount($value);
+
+        if ($constraints->minLength !== null && $length < $constraints->minLength) {
+            $this->fail($path, 'mapping.min_length', \sprintf('Must be at least %d characters, got %d.', $constraints->minLength, $length), $value);
+        }
+
+        if ($constraints->maxLength !== null && $length > $constraints->maxLength) {
+            $this->fail($path, 'mapping.max_length', \sprintf('Must be at most %d characters, got %d.', $constraints->maxLength, $length), $value);
+        }
+
+        if ($constraints->pattern !== null && !$constraints->matchesPattern($value)) {
+            $this->fail($path, 'mapping.pattern', \sprintf('"%s" does not match pattern "%s".', $value, $constraints->pattern), $value);
+        }
+    }
+
+    /**
+     * Records every violated numeric constraint on the (possibly coerced)
+     * value — all violations of one member land in the report at once.
+     */
+    private function checkNumberConstraints(ConstraintSet $constraints, int|float $value, JsonPointer $path): void
+    {
+        if ($constraints->minimum !== null && $value < $constraints->minimum) {
+            $this->fail($path, 'mapping.minimum', \sprintf('Must be >= %s.', $constraints->minimum), $value);
+        }
+
+        if ($constraints->maximum !== null && $value > $constraints->maximum) {
+            $this->fail($path, 'mapping.maximum', \sprintf('Must be <= %s.', $constraints->maximum), $value);
+        }
+
+        if ($constraints->exclusiveMinimum !== null && $value <= $constraints->exclusiveMinimum) {
+            $this->fail($path, 'mapping.exclusive_minimum', \sprintf('Must be > %s.', $constraints->exclusiveMinimum), $value);
+        }
+
+        if ($constraints->exclusiveMaximum !== null && $value >= $constraints->exclusiveMaximum) {
+            $this->fail($path, 'mapping.exclusive_maximum', \sprintf('Must be < %s.', $constraints->exclusiveMaximum), $value);
+        }
+
+        if ($constraints->multipleOf !== null && !$this->isMultipleOf($value, $constraints->multipleOf)) {
+            $this->fail($path, 'mapping.multiple_of', \sprintf('Must be a multiple of %s.', $constraints->multipleOf), $value);
+        }
+    }
+
+    /**
+     * JSON Schema string length counts Unicode code points, not bytes. A
+     * string that is not valid UTF-8 (possible via Source::array only —
+     * JSON input is UTF-8 by construction) falls back to its byte count.
+     */
+    private function codePointCount(string $value): int
+    {
+        $count = preg_match_all('/./su', $value);
+
+        return $count === false ? \strlen($value) : $count;
+    }
+
+    /**
+     * Quotients within this distance of a whole number count as multiples —
+     * binary floats make exact remainders unreliable (2^-33 ≈ 1.2e-10).
+     */
+    private const float MULTIPLE_OF_EPSILON = 2.0 ** -33;
+
+    private function isMultipleOf(int|float $value, int|float $of): bool
+    {
+        if (\is_int($value) && \is_int($of)) {
+            return $value % $of === 0;
+        }
+
+        $quotient = $value / $of;
+
+        return abs($quotient - round($quotient)) < self::MULTIPLE_OF_EPSILON;
     }
 
     /**
@@ -191,6 +285,11 @@ final class Hydrator
         }
 
         $errorsBefore = \count($this->errors);
+
+        if ($type->constraints !== null) {
+            $this->checkListConstraints($type->constraints, $value, $path);
+        }
+
         $items = [];
 
         foreach ($value as $index => $item) {
@@ -204,6 +303,75 @@ final class Hydrator
         return \count($this->errors) > $errorsBefore ? Failed::Value : $items;
     }
 
+    /**
+     * Checks the array keywords on the raw items, before per-item recursion —
+     * count and uniqueness errors report alongside item errors, not instead.
+     *
+     * @param list<mixed> $value
+     */
+    private function checkListConstraints(ConstraintSet $constraints, array $value, JsonPointer $path): void
+    {
+        $count = \count($value);
+
+        if ($constraints->minItems !== null && $count < $constraints->minItems) {
+            $this->fail($path, 'mapping.min_items', \sprintf('Must contain at least %d items, got %d.', $constraints->minItems, $count), $value);
+        }
+
+        if ($constraints->maxItems !== null && $count > $constraints->maxItems) {
+            $this->fail($path, 'mapping.max_items', \sprintf('Must contain at most %d items, got %d.', $constraints->maxItems, $count), $value);
+        }
+
+        if ($constraints->uniqueItems === true) {
+            $seen = [];
+
+            foreach ($value as $index => $item) {
+                $key = $this->canonicalKey($item);
+
+                if (isset($seen[$key])) {
+                    $this->fail($path->append($index), 'mapping.unique_items', \sprintf('Items must be unique — duplicates the item at index %d.', $seen[$key]), $item);
+
+                    continue;
+                }
+
+                $seen[$key] = $index;
+            }
+        }
+    }
+
+    /**
+     * A canonical serialization implementing JSON Schema equality: object key
+     * order is irrelevant, and numbers compare by value — 1 equals 1.0, since
+     * json_encode emits whole floats without a fraction (serialize_precision
+     * is -1, the shortest round-trip form, everywhere since PHP 7.1).
+     */
+    private function canonicalKey(mixed $value): string
+    {
+        return json_encode($this->canonicalize($value), \JSON_THROW_ON_ERROR);
+    }
+
+    private function canonicalize(mixed $value): mixed
+    {
+        // An associative array is a JSON object by another decoder; an empty
+        // array stays a JSON array (an empty JSON object decodes to \stdClass).
+        if ($value instanceof \stdClass || (\is_array($value) && !array_is_list($value))) {
+            $entries = $value instanceof \stdClass ? get_object_vars($value) : $value;
+            ksort($entries);
+            $object = new \stdClass();
+
+            foreach ($entries as $key => $entry) {
+                $object->{$key} = $this->canonicalize($entry);
+            }
+
+            return $object;
+        }
+
+        if (\is_array($value)) {
+            return array_map($this->canonicalize(...), $value);
+        }
+
+        return $value;
+    }
+
     private function map(MapType $type, mixed $value, JsonPointer $path): mixed
     {
         if ($value instanceof \stdClass) {
@@ -215,6 +383,11 @@ final class Hydrator
         }
 
         $errorsBefore = \count($this->errors);
+
+        if ($type->constraints !== null) {
+            $this->checkMapConstraints($type->constraints, $value, $path);
+        }
+
         $entries = [];
 
         foreach ($value as $key => $item) {
@@ -226,6 +399,22 @@ final class Hydrator
         }
 
         return \count($this->errors) > $errorsBefore ? Failed::Value : $entries;
+    }
+
+    /**
+     * @param array<mixed> $value
+     */
+    private function checkMapConstraints(ConstraintSet $constraints, array $value, JsonPointer $path): void
+    {
+        $count = \count($value);
+
+        if ($constraints->minProperties !== null && $count < $constraints->minProperties) {
+            $this->fail($path, 'mapping.min_properties', \sprintf('Must contain at least %d properties, got %d.', $constraints->minProperties, $count), $value);
+        }
+
+        if ($constraints->maxProperties !== null && $count > $constraints->maxProperties) {
+            $this->fail($path, 'mapping.max_properties', \sprintf('Must contain at most %d properties, got %d.', $constraints->maxProperties, $count), $value);
+        }
     }
 
     /**

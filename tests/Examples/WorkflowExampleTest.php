@@ -8,7 +8,11 @@ use Ingot\Error\MappingFailed;
 use Ingot\Examples\Workflow\Definition\DelayNode;
 use Ingot\Examples\Workflow\Definition\GenericNode;
 use Ingot\Examples\Workflow\Definition\HttpNode;
+use Ingot\Examples\Workflow\Definition\Node;
+use Ingot\Examples\Workflow\Definition\Workflow;
 use Ingot\Examples\Workflow\WorkflowProcessor;
+use Ingot\Mapping\VariantRegistry;
+use Ingot\SchemaGen\SchemaGenerator;
 use Ingot\Source;
 use PHPUnit\Framework\TestCase;
 
@@ -143,6 +147,40 @@ final class WorkflowExampleTest extends TestCase
         }
     }
 
+    public function testNodePayloadViolatingConstraintsIsRejected(): void
+    {
+        // GIVEN node payloads breaking the declared #[Constraints]: an unknown
+        // HTTP method, a timeout off the half-second grid, a zero delay
+        $processor = new WorkflowProcessor();
+        $json = <<<'JSON'
+            {
+                "id": "wf",
+                "name": "Broken payloads",
+                "nodes": [
+                    {"type": "http", "id": "call", "url": "https://api.example.com", "method": "FETCH", "timeoutSeconds": 0.3},
+                    {"type": "delay", "id": "wait", "seconds": 0}
+                ]
+            }
+            JSON;
+
+        // WHEN
+        try {
+            $processor->load(Source::json($json));
+            self::fail('Expected MappingFailed.');
+        } catch (MappingFailed $exception) {
+            // THEN every violation reports at its exact location
+            $codes = [];
+
+            foreach ($exception->report() as $error) {
+                $codes[$error->pointer->toString()][] = $error->code;
+            }
+
+            self::assertContains('mapping.pattern', $codes['/nodes/0/method']);
+            self::assertContains('mapping.multiple_of', $codes['/nodes/0/timeoutSeconds']);
+            self::assertContains('mapping.minimum', $codes['/nodes/1/seconds']);
+        }
+    }
+
     public function testWorkflowViolatingTheMetaSchemaIsRejected(): void
     {
         // GIVEN a definition missing its required "name"
@@ -156,6 +194,61 @@ final class WorkflowExampleTest extends TestCase
             // THEN
             self::assertSame('schema.required', $exception->report()->errors[0]->code);
         }
+    }
+
+    public function testGeneratedWorkflowSchemaCarriesTheConstraints(): void
+    {
+        // GIVEN the node types a bootstrap would register — the union is
+        // open, so the generator needs the same registry the mapper uses
+        $registry = new VariantRegistry();
+        $registry->register(Node::class, 'http', HttpNode::class);
+        $registry->register(Node::class, 'delay', DelayNode::class);
+        $schema = new SchemaGenerator(variants: $registry)->generate(Workflow::class);
+
+        // WHEN
+        $document = json_decode(json_encode($schema->document, \JSON_THROW_ON_ERROR), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($document);
+        $defs = $document['$defs'];
+        self::assertIsArray($defs);
+
+        // THEN the node payload constraints land in the generated JSON Schema
+        $http = self::properties($defs['Ingot.Examples.Workflow.Definition.HttpNode'] ?? null);
+        self::assertSame(
+            ['type' => 'string', 'pattern' => '^(GET|POST|PUT|PATCH|DELETE)$'],
+            $http['method'],
+        );
+        self::assertSame(
+            ['type' => 'number', 'exclusiveMinimum' => 0, 'exclusiveMaximum' => 300, 'multipleOf' => 0.5],
+            $http['timeoutSeconds'],
+        );
+        self::assertSame(
+            ['type' => 'object', 'additionalProperties' => ['type' => 'string'], 'minProperties' => 1, 'maxProperties' => 20],
+            $http['headers'],
+        );
+
+        $delay = self::properties($defs['Ingot.Examples.Workflow.Definition.DelayNode'] ?? null);
+        self::assertSame(
+            ['type' => 'integer', 'minimum' => 1, 'maximum' => 86400],
+            $delay['seconds'],
+        );
+
+        $workflow = self::properties($defs['Ingot.Examples.Workflow.Definition.Workflow'] ?? null);
+        self::assertSame(
+            ['type' => 'string', 'minLength' => 1, 'pattern' => '^[a-z][a-z0-9-]*$'],
+            $workflow['id'],
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function properties(mixed $def): array
+    {
+        self::assertIsArray($def);
+        self::assertIsArray($def['properties'] ?? null);
+
+        /** @var array<string, mixed> */
+        return $def['properties'];
     }
 
     public function testWorkflowRoundTripsLosslesslyIncludingUnknownNodesAndVendorKeys(): void

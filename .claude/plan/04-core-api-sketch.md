@@ -159,6 +159,7 @@ Attribute set for the MVP (small on purpose):
 | `#[Discriminator('type', map: [...])]` | union root (abstract class/interface) | which JSON field selects the variant + the closed-union value→class map (declared on the root because PHP cannot enumerate subclasses; open unions use the builder registry, which merges with and wins over the map) |
 | `#[Name('json_key')]` | promoted parameter | JSON key ≠ property name |
 | `#[Format('date-time')]` | parameter | validated syntax for string/date members (`date-time`, `date`, `uuid`, `uri`, `email`) — implemented 2026-08-13: hydration validates, `DateTimeImmutable` parsing turns strict, SchemaGen emits the format, `normalize()` re-emits `date` members as full dates |
+| `#[Constraints(...)]` | parameter / property | simple JSON Schema validation keywords per member kind (string lengths/pattern, numeric bounds/multipleOf, list counts/uniqueItems, map property counts) — implemented 2026-08-14 per [05-simple-constraints.md](05-simple-constraints.md): hydration enforces, SchemaGen emits verbatim |
 | `#[Extras]` | one array parameter | bag for unknown keys (round-trip) |
 
 *(An earlier draft had `#[Variant('text')]` on subclasses — dropped as unimplementable: the mapper resolves the union root first and PHP cannot discover subclasses, so a subclass-side attribute would never be read.)*

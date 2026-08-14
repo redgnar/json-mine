@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ingot\Examples\Workflow\Definition;
 
+use Ingot\Attribute\Constraints;
 use Ingot\Attribute\Discriminator;
 
 /**
@@ -16,6 +17,7 @@ use Ingot\Attribute\Discriminator;
 abstract readonly class Node
 {
     public function __construct(
+        #[Constraints(minLength: 1)]
         public string $id,
         public string $name = '',
     ) {}

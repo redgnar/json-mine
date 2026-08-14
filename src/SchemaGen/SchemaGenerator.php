@@ -6,6 +6,7 @@ namespace Ingot\SchemaGen;
 
 use Ingot\Mapping\Metadata\MetadataFactory;
 use Ingot\Mapping\Type\ClassType;
+use Ingot\Mapping\Type\ConstraintSet;
 use Ingot\Mapping\Type\DateTimeType;
 use Ingot\Mapping\Type\EnumType;
 use Ingot\Mapping\Type\FormatKind;
@@ -75,8 +76,14 @@ final class SchemaGenerator
             // Backed enums are JsonSerializable — cases encode to their values.
             $type instanceof EnumType => ['enum' => $type->enum::cases()],
             $type instanceof DateTimeType => ['type' => 'string', 'format' => ($type->format ?? FormatKind::DateTime)->value],
-            $type instanceof ListType => ['type' => 'array', 'items' => $this->embed($this->node($type->item, $defs))],
-            $type instanceof MapType => ['type' => 'object', 'additionalProperties' => $this->embed($this->node($type->value, $defs))],
+            $type instanceof ListType => $this->withConstraints(
+                ['type' => 'array', 'items' => $this->embed($this->node($type->item, $defs))],
+                $type->constraints,
+            ),
+            $type instanceof MapType => $this->withConstraints(
+                ['type' => 'object', 'additionalProperties' => $this->embed($this->node($type->value, $defs))],
+                $type->constraints,
+            ),
             $type instanceof ClassType => $this->reference($type->class, $defs),
         };
     }
@@ -97,7 +104,20 @@ final class SchemaGenerator
             $node['format'] = $type->format->value;
         }
 
-        return $node;
+        return $this->withConstraints($node, $type->constraints);
+    }
+
+    /**
+     * Appends the declared constraint keywords to a schema node — they carry
+     * their JSON Schema names, so they land in the document verbatim.
+     *
+     * @param array<string, mixed> $node
+     *
+     * @return array<string, mixed>
+     */
+    private function withConstraints(array $node, ?ConstraintSet $constraints): array
+    {
+        return $constraints === null ? $node : [...$node, ...$constraints->toKeywords()];
     }
 
     /**

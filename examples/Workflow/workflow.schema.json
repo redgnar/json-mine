@@ -4,7 +4,7 @@
     "type": "object",
     "required": ["id", "name", "nodes"],
     "properties": {
-        "id": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1, "pattern": "^[a-z][a-z0-9-]*$"},
         "name": {"type": "string", "minLength": 1},
         "nodes": {
             "type": "array",

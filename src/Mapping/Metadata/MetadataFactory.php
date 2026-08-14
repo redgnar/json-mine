@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Ingot\Mapping\Metadata;
 
+use Ingot\Attribute\Constraints;
 use Ingot\Attribute\Discriminator;
 use Ingot\Attribute\Extras;
 use Ingot\Attribute\Format;
 use Ingot\Attribute\Name;
+use Ingot\Mapping\Type\ConstraintSet;
 use Ingot\Mapping\Type\DateTimeType;
 use Ingot\Mapping\Type\FormatKind;
+use Ingot\Mapping\Type\ListType;
 use Ingot\Mapping\Type\MapType;
 use Ingot\Mapping\Type\MixedType;
 use Ingot\Mapping\Type\NullableType;
@@ -172,6 +175,10 @@ final class MetadataFactory
             $type = $this->applyFormat($type, $attribute->newInstance()->format, $owner);
         }
 
+        foreach ($property->getAttributes(Constraints::class) as $attribute) {
+            $type = $this->applyConstraints($type, $attribute->newInstance(), $owner);
+        }
+
         if ($isExtras && !($type instanceof MapType || $type instanceof MixedType)) {
             throw new \LogicException(\sprintf(
                 'The #[Extras] property "%s" of %s must be an array.',
@@ -278,6 +285,10 @@ final class MetadataFactory
             $type = $this->applyFormat($type, $attribute->newInstance()->format, $owner);
         }
 
+        foreach ($parameter->getAttributes(Constraints::class) as $attribute) {
+            $type = $this->applyConstraints($type, $attribute->newInstance(), $owner);
+        }
+
         if ($isExtras && !($type instanceof MapType || $type instanceof MixedType)) {
             throw new \LogicException(\sprintf(
                 'The #[Extras] parameter "%s" of %s must be an array.',
@@ -333,6 +344,154 @@ final class MetadataFactory
             $format,
             $owner,
         ));
+    }
+
+    private const array STRING_CONSTRAINTS = ['minLength', 'maxLength', 'pattern'];
+    private const array NUMBER_CONSTRAINTS = ['minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'multipleOf'];
+    private const array LIST_CONSTRAINTS = ['minItems', 'maxItems', 'uniqueItems'];
+    private const array MAP_CONSTRAINTS = ['minProperties', 'maxProperties'];
+
+    /**
+     * Attaches a #[Constraints] to the member's type node, descending through
+     * a nullable wrapper. Each keyword group applies to one member kind only
+     * (strings, numbers, lists, maps) — a keyword on any other kind, like a
+     * self-contradictory declaration, is a configuration error.
+     *
+     * @param string $owner member description used in configuration-error messages
+     */
+    private function applyConstraints(TypeNode $type, Constraints $constraints, string $owner): TypeNode
+    {
+        if ($type instanceof NullableType) {
+            return new NullableType($this->applyConstraints($type->inner, $constraints, $owner));
+        }
+
+        $declared = array_keys(array_filter(
+            get_object_vars($constraints),
+            static fn(mixed $keyword): bool => $keyword !== null,
+        ));
+
+        if ($declared === []) {
+            throw new \LogicException(\sprintf(
+                '#[Constraints] on %s declares no keyword — remove the attribute or declare a constraint.',
+                $owner,
+            ));
+        }
+
+        $this->assertConstraintsAreSane($constraints, $owner);
+
+        $set = new ConstraintSet(
+            minLength: $constraints->minLength,
+            maxLength: $constraints->maxLength,
+            pattern: $constraints->pattern,
+            minimum: $constraints->minimum,
+            maximum: $constraints->maximum,
+            exclusiveMinimum: $constraints->exclusiveMinimum,
+            exclusiveMaximum: $constraints->exclusiveMaximum,
+            multipleOf: $constraints->multipleOf,
+            minItems: $constraints->minItems,
+            maxItems: $constraints->maxItems,
+            uniqueItems: $constraints->uniqueItems,
+            minProperties: $constraints->minProperties,
+            maxProperties: $constraints->maxProperties,
+        );
+
+        if ($type instanceof ScalarType && $type->kind === ScalarKind::String) {
+            $this->assertConstraintGroup($declared, self::STRING_CONSTRAINTS, $owner);
+
+            return new ScalarType($type->kind, $type->format, $set);
+        }
+
+        if ($type instanceof ScalarType && ($type->kind === ScalarKind::Integer || $type->kind === ScalarKind::Float)) {
+            $this->assertConstraintGroup($declared, self::NUMBER_CONSTRAINTS, $owner);
+
+            return new ScalarType($type->kind, $type->format, $set);
+        }
+
+        if ($type instanceof ListType) {
+            $this->assertConstraintGroup($declared, self::LIST_CONSTRAINTS, $owner);
+
+            return new ListType($type->item, $set);
+        }
+
+        if ($type instanceof MapType) {
+            $this->assertConstraintGroup($declared, self::MAP_CONSTRAINTS, $owner);
+
+            return new MapType($type->value, $set);
+        }
+
+        throw new \LogicException(\sprintf(
+            '#[Constraints] does not apply to %s — constraints apply to string, int/float, list and map members.',
+            $owner,
+        ));
+    }
+
+    /**
+     * @param list<string> $declared
+     * @param list<string> $allowed
+     */
+    private function assertConstraintGroup(array $declared, array $allowed, string $owner): void
+    {
+        $stray = array_diff($declared, $allowed);
+
+        if ($stray !== []) {
+            throw new \LogicException(\sprintf(
+                'Constraint keyword(s) %s do not apply to %s — allowed on this member kind: %s.',
+                implode(', ', $stray),
+                $owner,
+                implode(', ', $allowed),
+            ));
+        }
+    }
+
+    /**
+     * Rejects declarations no value could ever satisfy (or that make no
+     * sense) — negative lengths/counts, a minimum above its maximum, a
+     * non-positive multipleOf, a pattern that does not compile.
+     */
+    private function assertConstraintsAreSane(Constraints $constraints, string $owner): void
+    {
+        foreach (['minLength', 'maxLength', 'minItems', 'maxItems', 'minProperties', 'maxProperties'] as $count) {
+            if ($constraints->{$count} !== null && $constraints->{$count} < 0) {
+                throw new \LogicException(\sprintf('%s on %s must be >= 0, got %d.', $count, $owner, $constraints->{$count}));
+            }
+        }
+
+        $pairs = [
+            ['minLength', 'maxLength'],
+            ['minimum', 'maximum'],
+            ['minItems', 'maxItems'],
+            ['minProperties', 'maxProperties'],
+        ];
+
+        foreach ($pairs as [$minimum, $maximum]) {
+            if ($constraints->{$minimum} !== null && $constraints->{$maximum} !== null && $constraints->{$minimum} > $constraints->{$maximum}) {
+                throw new \LogicException(\sprintf(
+                    '%s (%s) exceeds %s (%s) on %s — no value could satisfy both.',
+                    $minimum,
+                    $constraints->{$minimum},
+                    $maximum,
+                    $constraints->{$maximum},
+                    $owner,
+                ));
+            }
+        }
+
+        if ($constraints->exclusiveMinimum !== null && $constraints->exclusiveMaximum !== null && $constraints->exclusiveMinimum >= $constraints->exclusiveMaximum) {
+            throw new \LogicException(\sprintf(
+                'exclusiveMinimum (%s) must be below exclusiveMaximum (%s) on %s — no value could satisfy both.',
+                $constraints->exclusiveMinimum,
+                $constraints->exclusiveMaximum,
+                $owner,
+            ));
+        }
+
+        if ($constraints->multipleOf !== null && $constraints->multipleOf <= 0) {
+            throw new \LogicException(\sprintf('multipleOf on %s must be > 0, got %s.', $owner, $constraints->multipleOf));
+        }
+
+        if ($constraints->pattern !== null && @preg_match(ConstraintSet::delimit($constraints->pattern), '') === false) {
+            throw new \LogicException(\sprintf('The pattern "%s" on %s does not compile.', $constraints->pattern, $owner));
+        }
     }
 
     /**
