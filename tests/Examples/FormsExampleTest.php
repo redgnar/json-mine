@@ -105,8 +105,8 @@ final class FormsExampleTest extends TestCase
         self::assertContains('schema.maxLength', $byPointer['/email']);
         self::assertContains('schema.enum', $byPointer['/country']);
         self::assertContains('schema.minimum', $byPointer['/age']);
-        // the unexpected key is reported at the owning object, named in the message
-        self::assertContains('schema.additionalProperties', $byPointer['']);
+        // the unexpected key is reported at the member itself, not lumped on the form
+        self::assertContains('schema.additionalProperties', $byPointer['/bogus']);
         self::assertStringContainsString('bogus', implode("\n", $messages));
     }
 

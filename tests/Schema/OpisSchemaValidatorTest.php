@@ -99,6 +99,70 @@ final class OpisSchemaValidatorTest extends TestCase
         self::assertSame(['schema.required', 'schema.type', 'schema.type'], $codes);
     }
 
+    public function testAnUnexpectedMemberIsReportedWhereItSits(): void
+    {
+        // GIVEN a closed object schema
+        $validator = new OpisSchemaValidator();
+        $schema = Schema::fromJson('{"type": "object", "properties": {"id": {"type": "string"}}, "additionalProperties": false}');
+        $document = $this->decode('{"id": "form-1", "bogus": 1, "other": 2}');
+
+        // WHEN
+        $report = $validator->validate($document, $schema);
+
+        // THEN each unexpected member is named at its own pointer, carrying the
+        // value that was not asked for — not one lump on the owning object
+        self::assertCount(2, $report);
+        self::assertSame('/bogus', $report->errors[0]->pointer->toString());
+        self::assertSame('schema.additionalProperties', $report->errors[0]->code);
+        self::assertSame(1, $report->errors[0]->input);
+        self::assertSame('/other', $report->errors[1]->pointer->toString());
+    }
+
+    public function testAMemberThatBrokeItsOwnRuleIsNotAlsoCalledUnexpected(): void
+    {
+        // GIVEN a declared member with a value its subschema refuses. opis
+        // counts a failed member as one it never evaluated, so it appears in
+        // the additionalProperties list as well.
+        $validator = new OpisSchemaValidator();
+        $schema = Schema::fromJson('{"type": "object", "properties": {"age": {"type": "number", "minimum": 18}}, "additionalProperties": false}');
+        $document = $this->decode('{"age": 7}');
+
+        // WHEN
+        $report = $validator->validate($document, $schema);
+
+        // THEN the report names the rule that was broken, and nothing else
+        self::assertCount(1, $report);
+        self::assertSame('/age', $report->errors[0]->pointer->toString());
+        self::assertSame('schema.minimum', $report->errors[0]->code);
+    }
+
+    public function testUnexpectedMembersOfANestedObjectKeepTheirFullPointer(): void
+    {
+        // GIVEN a closed object nested inside another
+        $validator = new OpisSchemaValidator();
+        $schema = Schema::fromJson(<<<'JSON'
+            {
+                "type": "object",
+                "properties": {
+                    "author": {
+                        "type": "object",
+                        "properties": {"name": {"type": "string"}},
+                        "additionalProperties": false
+                    }
+                }
+            }
+            JSON);
+        $document = $this->decode('{"author": {"name": "Ada", "nickname": "the countess"}}');
+
+        // WHEN
+        $report = $validator->validate($document, $schema);
+
+        // THEN
+        self::assertCount(1, $report);
+        self::assertSame('/author/nickname', $report->errors[0]->pointer->toString());
+        self::assertSame('schema.additionalProperties', $report->errors[0]->code);
+    }
+
     public function testBooleanFalseSchemaRejectsEverything(): void
     {
         // GIVEN
