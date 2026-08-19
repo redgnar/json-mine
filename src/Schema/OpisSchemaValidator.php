@@ -28,12 +28,14 @@ use Opis\JsonSchema\Validator;
  * standard JSON Schema cannot express at all ({@see DateBoundKeyword}).
  *
  * `additionalProperties` gets one extra step. opis reports it once on the
- * owning object, listing every member it did not evaluate — which includes
- * *declared* members that failed their own subschema. Reported verbatim, a
- * client would read "age is not a property of this object" next to "age must
- * be >= 18". Here each undeclared member is reported at its own pointer, and
- * members that already carry a finding of their own are left out: a property
- * that broke its rule is not an unexpected property.
+ * owning object, listing every member it did not evaluate — and it stops
+ * counting properties as evaluated as soon as one of them fails, so that list
+ * arrives holding members the schema declares, the failing one and its innocent
+ * siblings alike. Reported verbatim, a client would read "age is not a property
+ * of this object" next to "age must be >= 18", and "email is not allowed here"
+ * about a property the schema asked for. Here each member is reported at its own
+ * pointer, and only those the failing schema does not declare are reported at
+ * all.
  */
 final class OpisSchemaValidator implements SchemaValidator
 {
@@ -71,7 +73,7 @@ final class OpisSchemaValidator implements SchemaValidator
             return ErrorReport::none();
         }
 
-        return ErrorReport::of(...$this->withoutEvaluatedMembers($this->collectLeaves($error)));
+        return ErrorReport::of(...$this->collectLeaves($error));
     }
 
     /**
@@ -111,9 +113,24 @@ final class OpisSchemaValidator implements SchemaValidator
         return [new MappingError(
             JsonPointer::fromSegments($path),
             \sprintf('schema.%s', $error->keyword()),
-            $this->formatter->formatErrorMessage($error),
+            $this->message($error),
             $error->data()->value(),
         )];
+    }
+
+    /**
+     * opis words `const` as "The data must match the const value", which tells a
+     * client the name of a JSON Schema keyword and not the one thing it needs:
+     * which value was expected. It hands that value over in the error's
+     * arguments, so this says it.
+     */
+    private function message(ValidationError $error): string
+    {
+        if ($error->keyword() !== 'const') {
+            return $this->formatter->formatErrorMessage($error);
+        }
+
+        return \sprintf('The value must be %s.', json_encode($error->args()['const'] ?? null, \JSON_THROW_ON_ERROR));
     }
 
     /**
@@ -127,9 +144,19 @@ final class OpisSchemaValidator implements SchemaValidator
         $members = $error->args()['properties'];
         /** @var array<string, mixed> $object the keyword only ever fires on objects */
         $object = (array) $error->data()->value();
+        $declared = self::declaredMembers($error);
         $errors = [];
 
         foreach ($members as $member) {
+            // opis stops counting properties as evaluated once one of them fails
+            // its own subschema, so this list arrives holding members the schema
+            // declares. Telling a client that a property it was asked for is
+            // "not allowed" is worse than saying nothing: the real complaint is
+            // the sibling that failed, and it is already in the report.
+            if (\in_array($member, $declared, true)) {
+                continue;
+            }
+
             $errors[] = new MappingError(
                 JsonPointer::fromSegments([...$path, $member]),
                 self::UNEXPECTED_MEMBERS_CODE,
@@ -142,34 +169,17 @@ final class OpisSchemaValidator implements SchemaValidator
     }
 
     /**
-     * Drops the unexpected-members findings for members that already broke a
-     * rule of their own: opis counts a failed member as one it never evaluated,
-     * so it lands in both lists.
+     * The members the failing object schema declares, taken from that schema
+     * itself rather than guessed from the error tree.
      *
-     * @param list<MappingError> $findings
-     *
-     * @return list<MappingError>
+     * @return list<int|string>
      */
-    private function withoutEvaluatedMembers(array $findings): array
+    private static function declaredMembers(ValidationError $error): array
     {
-        $evaluated = [];
+        $schema = $error->schema()->info()->data();
+        $properties = $schema instanceof \stdClass ? $schema->properties ?? null : null;
 
-        foreach ($findings as $finding) {
-            if ($finding->code !== self::UNEXPECTED_MEMBERS_CODE) {
-                $evaluated[] = $finding->pointer->toString();
-            }
-        }
-
-        $kept = [];
-
-        foreach ($findings as $finding) {
-            if ($finding->code === self::UNEXPECTED_MEMBERS_CODE && \in_array($finding->pointer->toString(), $evaluated, true)) {
-                continue;
-            }
-
-            $kept[] = $finding;
-        }
-
-        return $kept;
+        return $properties instanceof \stdClass ? array_keys((array) $properties) : [];
     }
+
 }

@@ -136,6 +136,89 @@ final class OpisSchemaValidatorTest extends TestCase
         self::assertSame('schema.minimum', $report->errors[0]->code);
     }
 
+    public function testAMemberSittingBesideABrokenOneIsNotCalledUnexpectedEither(): void
+    {
+        // GIVEN three declared members, one of which breaks its own rule. opis
+        // stops counting *any* property as evaluated once one fails, so its
+        // innocent siblings arrive in the additionalProperties list too.
+        $validator = new OpisSchemaValidator();
+        $schema = Schema::fromJson(<<<'JSON'
+            {
+                "type": "object",
+                "properties": {
+                    "email": {"type": "string"},
+                    "country": {"enum": ["pl", "de"]},
+                    "terms": {"const": true}
+                },
+                "additionalProperties": false
+            }
+            JSON);
+        $document = $this->decode('{"email": "ada@example.com", "country": "pl", "terms": false}');
+
+        // WHEN
+        $report = $validator->validate($document, $schema);
+
+        // THEN one complaint, about the member that actually broke a rule —
+        // telling a client that a property it was asked for is "not allowed"
+        // sends it looking in the wrong place entirely
+        self::assertCount(1, $report);
+        self::assertSame('/terms', $report->errors[0]->pointer->toString());
+        self::assertSame('schema.const', $report->errors[0]->code);
+    }
+
+    public function testAnUndeclaredMemberIsStillReportedBesideABrokenOne(): void
+    {
+        // GIVEN a member that broke its rule and one nobody declared
+        $validator = new OpisSchemaValidator();
+        $schema = Schema::fromJson('{"type": "object", "properties": {"age": {"type": "number", "minimum": 18}}, "additionalProperties": false}');
+        $document = $this->decode('{"age": 7, "bogus": 1}');
+
+        // WHEN
+        $report = $validator->validate($document, $schema);
+
+        // THEN both are reported: suppressing the whole keyword because
+        // something else failed would hide a real mistake
+        self::assertCount(2, $report);
+        self::assertSame(['/age', '/bogus'], array_map(static fn($error): string => $error->pointer->toString(), $report->errors));
+        self::assertSame('schema.additionalProperties', $report->errors[1]->code);
+    }
+
+    public function testAConstRefusalSaysWhichValueWasExpected(): void
+    {
+        // GIVEN a schema that accepts exactly one value — a consent box, a fixed
+        // version, a discriminator
+        $validator = new OpisSchemaValidator();
+        $schema = Schema::fromJson('{"type": "object", "properties": {"terms": {"const": true}, "kind": {"const": "invoice"}}}');
+        $document = $this->decode('{"terms": false, "kind": "receipt"}');
+
+        // WHEN
+        $report = $validator->validate($document, $schema);
+
+        // THEN the message names the value, not the keyword: "must match the
+        // const value" tells a client the name of a rule and nothing about how
+        // to satisfy it
+        self::assertSame('schema.const', $report->errors[0]->code);
+        self::assertSame('The value must be true.', $report->errors[0]->message);
+        self::assertSame('The value must be "invoice".', $report->errors[1]->message);
+    }
+
+    public function testASchemaThatDeclaresNothingRefusesEveryMember(): void
+    {
+        // GIVEN an object schema with no properties at all: everything sent is
+        // additional, and there is nothing declared to spare
+        $validator = new OpisSchemaValidator();
+        $schema = Schema::fromJson('{"type": "object", "additionalProperties": false}');
+        $document = $this->decode('{"anything": 1}');
+
+        // WHEN
+        $report = $validator->validate($document, $schema);
+
+        // THEN
+        self::assertCount(1, $report);
+        self::assertSame('/anything', $report->errors[0]->pointer->toString());
+        self::assertSame('schema.additionalProperties', $report->errors[0]->code);
+    }
+
     public function testUnexpectedMembersOfANestedObjectKeepTheirFullPointer(): void
     {
         // GIVEN a closed object nested inside another
