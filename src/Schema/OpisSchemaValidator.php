@@ -7,8 +7,12 @@ namespace Ingot\Schema;
 use Ingot\Error\ErrorReport;
 use Ingot\Error\MappingError;
 use Ingot\JsonPointer;
+use Ingot\Schema\Vocabulary\DateBoundsVocabulary;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
+use Opis\JsonSchema\Parsers\SchemaParser;
+use Opis\JsonSchema\Resolvers\SchemaResolver;
+use Opis\JsonSchema\SchemaLoader;
 use Opis\JsonSchema\Validator;
 
 /**
@@ -18,6 +22,10 @@ use Opis\JsonSchema\Validator;
  * Leaf errors from the opis error tree are translated into MappingErrors:
  * the error code is "schema.<keyword>" and the pointer targets the offending
  * value inside the validated document.
+ *
+ * Two keywords come from this library rather than from a draft:
+ * `formatMinimum` and `formatMaximum` bound a `"format": "date"` string, which
+ * standard JSON Schema cannot express at all ({@see DateBoundKeyword}).
  *
  * `additionalProperties` gets one extra step. opis reports it once on the
  * owning object, listing every member it did not evaluate — which includes
@@ -40,7 +48,15 @@ final class OpisSchemaValidator implements SchemaValidator
 
     public function __construct(int $maxErrors = 100)
     {
-        $this->validator = new Validator(max_errors: $maxErrors, stop_at_first_error: false);
+        // The parser is built here rather than taken by default because of the
+        // extra vocabulary: `formatMinimum` and `formatMaximum` are what the
+        // ecosystem uses to bound a date, and a schema carrying them should be
+        // enforced, not silently half-read.
+        $this->validator = new Validator(
+            new SchemaLoader(new SchemaParser([], [], new DateBoundsVocabulary()), new SchemaResolver()),
+            max_errors: $maxErrors,
+            stop_at_first_error: false,
+        );
         $this->formatter = new ErrorFormatter();
         $this->pool = new SchemaDocumentPool();
     }

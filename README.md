@@ -88,6 +88,30 @@ foreach ($result->errors() as $error) {
 }
 ```
 
+### Bounding a date
+
+Standard JSON Schema can say how long a string is and what it looks like, but
+not that it falls inside a period: there is no `minimum` for strings. Ingot adds
+the two keywords the ecosystem settled on, with the meaning
+[ajv-formats](https://ajv.js.org/packages/ajv-formats.html) gives them, so one
+document is enforced the same way here and in a browser:
+
+```json
+{
+  "type": "string",
+  "format": "date",
+  "formatMinimum": "2026-01-01",
+  "formatMaximum": "2026-12-31"
+}
+```
+
+A date outside the range is reported as `schema.formatMinimum` or
+`schema.formatMaximum`. Both keywords apply to `"format": "date"` only — full
+dates sort as strings exactly as they sort in time, which is what makes the
+comparison exact; timestamps with offsets do not, so a bound beside any other
+format is refused when the schema is read, along with a bound that is not a
+whole calendar date (`2026-02-30` included).
+
 Schemas can also be resolved dynamically — by convention, from plugins, or by
 document content (the versioning hook) — and overridden per call:
 
@@ -146,6 +170,9 @@ if ($report->isEmpty()) {
 - **Rich types** — nested objects, `list<T>` / `array<K, V>` via PHPDoc, backed
   enums, `DateTimeImmutable`, nullable vs optional (both semantics honored),
   strict by default with an opt-in lax coercion table.
+- **Date ranges in schemas** — `formatMinimum` / `formatMaximum` beside
+  `"format": "date"`, which standard JSON Schema cannot express, spelled the way
+  ajv-formats spells them.
 - **Validated formats** — `#[Format('uuid')]` (also `uri`, `email`, `date`,
   `date-time`) rejects non-matching strings with a `mapping.format` error;
   on `DateTimeImmutable` members it replaces PHP's lenient date parsing with
