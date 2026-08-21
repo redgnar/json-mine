@@ -26,7 +26,7 @@ final class OpisSchemaValidatorTest extends TestCase
         self::assertTrue($report->isEmpty());
     }
 
-    public function testMissingRequiredPropertyIsReportedAtTheOwningObject(): void
+    public function testAMissingRequiredPropertyIsReportedUnderItsOwnName(): void
     {
         // GIVEN
         $validator = new OpisSchemaValidator();
@@ -36,11 +36,42 @@ final class OpisSchemaValidatorTest extends TestCase
         // WHEN
         $report = $validator->validate($document, $schema);
 
-        // THEN
+        // THEN it points at the member, not at the object around it: every
+        // other finding names the thing that is wrong, and a client that has to
+        // show this beside a control needs to know which one
         self::assertCount(1, $report);
         $error = $report->errors[0];
         self::assertSame('schema.required', $error->code);
-        self::assertSame('', $error->pointer->toString());
+        self::assertSame('/id', $error->pointer->toString());
+        self::assertSame('"id" is required.', $error->message);
+    }
+
+    public function testEveryMissingPropertyIsItsOwnFinding(): void
+    {
+        // GIVEN an object owing three things and given one
+        $validator = new OpisSchemaValidator();
+        $schema = Schema::fromJson(<<<'JSON'
+            {
+                "type": "object",
+                "properties": {
+                    "lines": {
+                        "type": "array",
+                        "items": {"type": "object", "required": ["sku", "quantity", "unit"]}
+                    }
+                }
+            }
+            JSON);
+        $document = $this->decode('{"lines": [{"sku": "A-1"}]}');
+
+        // WHEN
+        $report = $validator->validate($document, $schema);
+
+        // THEN each is named where it belongs, so a client can mark all three at
+        // once rather than being told the entry is incomplete
+        self::assertSame(
+            ['/lines/0/quantity', '/lines/0/unit'],
+            array_map(static fn($error): string => $error->pointer->toString(), $report->errors),
+        );
     }
 
     public function testNestedTypeViolationCarriesTheFullJsonPointer(): void

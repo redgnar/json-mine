@@ -110,6 +110,10 @@ final class OpisSchemaValidator implements SchemaValidator
             return $this->unexpectedMembers($error, $path);
         }
 
+        if ($error->keyword() === 'required') {
+            return self::missingMembers($error, $path);
+        }
+
         return [new MappingError(
             JsonPointer::fromSegments($path),
             \sprintf('schema.%s', $error->keyword()),
@@ -162,6 +166,39 @@ final class OpisSchemaValidator implements SchemaValidator
                 self::UNEXPECTED_MEMBERS_CODE,
                 \sprintf('The property "%s" is not allowed here.', $member),
                 $object[$member],
+            );
+        }
+
+        return $errors;
+    }
+
+    /**
+     * A missing member is reported under its own name, one finding per member.
+     *
+     * opis says it once for the object — "the required properties (a, b) are
+     * missing" at the object's pointer — which tells a client where to look and
+     * not what to look at. Every other finding points at the thing that is
+     * wrong, so this one does too: `/lines/1/sku` rather than `/lines/1`. That
+     * is what lets a page put the message beside the control that has to be
+     * filled in, and it is the same shape as an unexpected member, which is the
+     * mirror image of this rule.
+     *
+     * @param list<int|string> $path pointer of the object missing them
+     *
+     * @return list<MappingError>
+     */
+    private static function missingMembers(ValidationError $error, array $path): array
+    {
+        /** @var list<string> $members opis names the members it did not find */
+        $members = $error->args()['missing'] ?? [];
+        $errors = [];
+
+        foreach ($members as $member) {
+            $errors[] = new MappingError(
+                JsonPointer::fromSegments([...$path, $member]),
+                'schema.required',
+                \sprintf('"%s" is required.', $member),
+                null,
             );
         }
 
